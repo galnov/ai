@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Machines that learn</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* The list of projects is in projects.json - edit it to change the texts. */
+    :root {
+      --bg: #eef1f6; --ink: #14213d; --muted: #5b6782; --card: #ffffff;
+      --sup: #2f6fed; --rl: #e85d04; --mix: #7b2cbf;
+      --head: "Space Grotesk", system-ui, sans-serif; --body: Inter, system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); }
+    a { color: inherit; }
+    header { max-width: 1120px; margin: 0 auto; padding: 64px 24px 28px; }
+    h1 { font-family: var(--head); font-weight: 700; font-size: clamp(44px, 8vw, 92px); line-height: 0.95; letter-spacing: -0.03em; margin: 0; }
+    .sub { max-width: 640px; margin: 18px 0 0; font-size: 18px; line-height: 1.55; color: var(--muted); }
+    .legend { display: flex; flex-wrap: wrap; gap: 16px; margin: 22px 0 0; padding: 0; list-style: none; font-size: 14px; color: var(--muted); }
+    .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+    main { max-width: 1120px; margin: 0 auto; padding: 8px 24px 64px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; }
+    .card { background: var(--card); border: 2px solid var(--ink); border-radius: 16px; padding: 20px 20px 18px; box-shadow: 6px 6px 0 var(--ink);
+            display: flex; flex-direction: column; gap: 10px; }
+    .card.soon { box-shadow: none; border-style: dashed; opacity: 0.85; }
+    .top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .emoji { font-size: 44px; line-height: 1; }
+    .kind { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 99px; color: #fff; white-space: nowrap; }
+    .card h2 { font-family: var(--head); font-size: 24px; line-height: 1.15; margin: 4px 0 0; letter-spacing: -0.01em; }
+    .card p { margin: 0; line-height: 1.5; color: var(--muted); font-size: 15px; flex: 1; }
+    .actions { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
+    .btn { font: 600 15px var(--body); text-decoration: none; padding: 9px 16px; border-radius: 10px; border: 2px solid var(--ink); background: #ffd23f; }
+    .btn:hover { background: #ffc300; }
+    .btn:focus-visible, .code:focus-visible { outline: 3px solid var(--sup); outline-offset: 2px; }
+    .code { font-size: 14px; color: var(--muted); }
+    .wait { font-size: 14px; color: var(--muted); font-style: italic; }
+    footer { max-width: 1120px; margin: 0 auto; padding: 0 24px 40px; color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="title">Machines that learn</h1>
+    <p class="sub" id="subtitle"></p>
+    <ul class="legend">
+      <li><i style="background: var(--sup)"></i>learns from labeled examples</li>
+      <li><i style="background: var(--rl)"></i>learns by trial and error</li>
+      <li><i style="background: var(--mix)"></i>both</li>
+    </ul>
+  </header>
+  <main id="cards"></main>
+  <footer>Every page runs its neural network in your browser - nothing is sent to a server.</footer>
+
+  <script>
+    // The GitHub address of this repository, worked out from the page's address
+    // (https://<user>.github.io/<repo>/ -> https://github.com/<user>/<repo>)
+    function repoUrl() {
+      const host = location.hostname;
+      if (!host.endsWith(".github.io")) return null;
+      const user = host.replace(".github.io", "");
+      const first = location.pathname.split("/").filter(Boolean)[0];
+      return `https://github.com/${user}/${first || host}`;
+    }
+    const color = (kind) => /\+|imitation/i.test(kind) ? "var(--mix)" : /reinforcement/i.test(kind) ? "var(--rl)" : "var(--sup)";
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+    async function main() {
+      const data = await (await fetch("projects.json")).json();
+      let status = null;                  // written by the publishing workflow; missing when previewing locally
+      try { const r = await fetch("status.json"); if (r.ok) status = await r.json(); } catch {}
+      document.getElementById("title").textContent = data.title;
+      document.title = data.title;
+      document.getElementById("subtitle").textContent = data.subtitle;
+      const repo = repoUrl();
+      const cards = data.projects
+        .filter((p) => !status || status.folders.includes(p.folder))          // only folders that are in the repository
+        .map((p) => {
+          const live = !status || status.web.includes(p.folder);
+          const code = repo ? `<a class="code" href="${repo}/tree/main/${encodeURIComponent(p.folder)}">The code</a>` : "";
+          return `<article class="card ${live ? "" : "soon"}">
+            <div class="top"><span class="emoji" aria-hidden="true">${esc(p.emoji)}</span>
+              <span class="kind" style="background:${color(p.kind)}">${esc(p.kind)}</span></div>
+            <h2>${esc(p.title)}</h2>
+            <p>${esc(p.text)}</p>
+            <div class="actions">${live ? `<a class="btn" href="${encodeURIComponent(p.folder)}/">Open</a>` : `<span class="wait">Web version coming soon</span>`}${code}</div>
+          </article>`;
+        });
+      document.getElementById("cards").innerHTML = cards.join("");
+    }
+    main();
+  </script>
+</body>
+</html>

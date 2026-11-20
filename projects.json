@@ -1,0 +1,20 @@
+{
+  "title": "Machines that learn",
+  "subtitle": "Final project in Software Engineering, Artificial Intelligence track. Every project here trains a neural network from scratch - and most of them run right in your browser.",
+  "projects": [
+    {"folder": "doodle",  "emoji": "✏️", "title": "Guess What I'm Drawing", "kind": "Supervised learning",
+     "text": "A convolutional network trained on Google's Quick Draw drawings recognizes 42 things while you draw them. Play against it in a 6-drawing game."},
+    {"folder": "emotion", "emoji": "🙂", "title": "Emotion Mirror", "kind": "Supervised learning",
+     "text": "A CNN reads the facial expression from your webcam and shows what it looks at."},
+    {"folder": "car",     "emoji": "🏎️", "title": "Self-Driving Car", "kind": "Reinforcement learning",
+     "text": "A car learns to drive around tracks it has never seen, with DQN and distance sensors."},
+    {"folder": "traffic", "emoji": "🚦", "title": "Smart Intersection", "kind": "Supervised + reinforcement",
+     "text": "One network counts cars in camera images, another runs the traffic light and cuts the waiting time."},
+    {"folder": "drone",   "emoji": "🚁", "title": "A Drone That Learned to Fly", "kind": "Reinforcement learning",
+     "text": "PPO controls two propellers continuously, through wind, gusts and heavy packages."},
+    {"folder": "runner",  "emoji": "🏃", "title": "Runner AI", "kind": "Imitation + reinforcement",
+     "text": "Race three networks in a 3D endless runner: one copied human players, one taught itself, one did both."},
+    {"folder": "maze",    "emoji": "🚀", "title": "Maze Pilot", "kind": "Reinforcement learning",
+     "text": "A spaceship teaches itself to fly through narrow 3D mazes, seen from the cockpit."}
+  ]
+}
