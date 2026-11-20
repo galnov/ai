@@ -320,6 +320,11 @@ and open http://localhost:8000 (opening `docs/index.html` directly as a file doe
 its workflow publishes this folder's `docs/` at `https://<your-user>.github.io/<repository>/runner/` (the
 README at the top of the repository explains the one-time setup).
 
+**On phones and tablets:** swipe on the picture (left / right to change lanes, up to jump, down to slide), or
+use the four big buttons under it. The move counts as soon as the finger has moved a little, without lifting
+it, and the page does not scroll while you play. When the phone is upright, the picture is taller and the
+camera's view wider, so all three lanes fit.
+
 **Recordings from the web page.** There is no server to save runs to, so they are kept in the visitor's
 browser, and the leaderboard shows the runs played in that browser. "Download my runs" (under the
 leaderboard) saves them to `my_runs.json`. Then:

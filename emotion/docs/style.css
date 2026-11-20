@@ -182,6 +182,13 @@ body {
   .brand h1 { font-size: 34px; }
   .banner { margin: 8px 16px 0; }
 }
+/* phones: the title above the status, and the camera picture no taller than the screen */
+@media (max-width: 600px) {
+  .topbar { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .brand h1 { font-size: 30px; }
+  .status { white-space: normal; font-size: 14px; }
+  .stage { max-height: 70vh; }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }

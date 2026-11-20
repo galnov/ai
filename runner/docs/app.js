@@ -7,6 +7,7 @@
 const { C, Game, jumpHeight } = window.Runner;
 const { Engine } = window.Engine3D;
 const $ = (id) => document.getElementById(id);
+const TOUCH = matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;   // a phone or a tablet
 
 const LANE_W = 2.5;                                 // meters between lane centers
 const laneX = (l) => (l - 1) * LANE_W;
@@ -52,6 +53,7 @@ async function loadInfo() {
 
 // ---------------------------------------------------------------- starting and ending runs
 async function startRun() {
+  if (TOUCH) document.querySelector(".stage").scrollIntoView({ behavior: "smooth", block: "start" });   // the picture and the buttons on the screen
   S.seed = Math.floor(Math.random() * 2 ** 31);
   S.me = S.mode === "race" ? new Game(S.seed) : null;
   S.ghost = new Game(S.seed);
@@ -136,7 +138,11 @@ function showMenu() {
       <h2>${watch ? "Watch the AI run" : "Race the AI"}</h2>
       <p>${watch ? "The AI plays a new track every time. Change the opponent on the right to compare the three networks."
         : "You and the AI ghost run the same track. Whoever gets farther wins."}</p>
-      ${watch ? "" : `<ul class="keys">
+      ${watch ? "" : TOUCH ? `<ul class="keys">
+        <li>Swipe <b>left / right</b> to change lanes (trains)</li>
+        <li>Swipe <b>up</b> to jump (hurdles)</li>
+        <li>Swipe <b>down</b> to slide (overhead bars)</li>
+        <li>or use the buttons under the picture</li></ul>` : `<ul class="keys">
         <li><kbd>←</kbd><kbd>→</kbd> or <kbd>A</kbd><kbd>D</kbd> change lanes (trains)</li>
         <li><kbd>↑</kbd> <kbd>W</kbd> or <kbd>Space</kbd> jump (hurdles)</li>
         <li><kbd>↓</kbd> or <kbd>S</kbd> slide (overhead bars)</li></ul>`}
@@ -231,7 +237,11 @@ function draw(t) {
   S.camX = lerp(S.camX ?? 0, focus.x, 0.12);
   const shake = S.shake * 0.25 * Math.sin(performance.now() / 25);
   const speed = (S.ghost.speed() - C.V0) / (C.VMAX - C.V0);
-  engine.camera([S.camX + shake, 3.3, 6.2], [S.camX * 0.55, 0.9, -12], 1.0 + speed * 0.15);
+  // a tall screen (a phone held upright) gets a wider view, so all three lanes still fit
+  const aspect = $("view").clientWidth / Math.max(1, $("view").clientHeight);
+  let fov = 1.0 + speed * 0.15;
+  if (aspect < 1.6) fov = 2 * Math.atan(Math.tan(fov / 2) * Math.min(1.6, 1.6 / aspect));
+  engine.camera([S.camX + shake, 3.3, 6.2], [S.camX * 0.55, 0.9, -12], fov);
 
   // ground: three railway lanes, gravel between, sidewalks
   for (let l = 0; l < 3; l++) engine.box(laneX(l), -0.1, -50, 2.3, 0.2, 130, "#8a8178", { pattern: 3, color2: "#5b4a3c" });
@@ -418,16 +428,29 @@ window.addEventListener("keydown", (e) => {
   if (S.phase === "running" && S.mode === "race" && !e.repeat && S.input.length < 3) S.input.push(a);
 });
 
-// swipes on touch screens
+// ---------------------------------------------------------------- touch screens
+// a swipe on the picture: the move counts as soon as the finger has gone 24 px (no need to lift it)
+const press = (a) => { if (S.phase === "running" && S.mode === "race" && S.input.length < 3) S.input.push(a); };
 let touch = null;
-$("view").addEventListener("touchstart", (e) => { touch = [e.touches[0].clientX, e.touches[0].clientY]; }, { passive: true });
-$("view").addEventListener("touchend", (e) => {
-  if (!touch || S.phase !== "running") return;
-  const dx = e.changedTouches[0].clientX - touch[0], dy = e.changedTouches[0].clientY - touch[1];
-  if (Math.max(Math.abs(dx), Math.abs(dy)) > 30) {
-    S.input.push(Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? C.LEFT : C.RIGHT) : (dy < 0 ? C.JUMP : C.SLIDE));
-  }
-  touch = null;
+const stage = document.querySelector(".stage");
+stage.addEventListener("touchstart", (e) => {
+  if (e.target.closest("button, select, input")) return;
+  touch = { x: e.touches[0].clientX, y: e.touches[0].clientY, used: false };
+}, { passive: true });
+stage.addEventListener("touchmove", (e) => {
+  if (!touch) return;
+  if (S.phase === "running") e.preventDefault();
+  if (touch.used) return;
+  const dx = e.touches[0].clientX - touch.x, dy = e.touches[0].clientY - touch.y;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+  touch.used = true;
+  press(Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? C.LEFT : C.RIGHT) : (dy < 0 ? C.JUMP : C.SLIDE));
+}, { passive: false });
+stage.addEventListener("touchend", () => { touch = null; });
+stage.addEventListener("touchcancel", () => { touch = null; });
+if (TOUCH) $("pad").hidden = false;
+document.querySelectorAll("#pad button").forEach((b) => {
+  b.addEventListener("pointerdown", (e) => { e.preventDefault(); press(+b.dataset.a); });
 });
 
 $("opponent").onchange = (e) => {

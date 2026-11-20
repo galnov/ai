@@ -38,11 +38,17 @@
   }
 
   root.Backend = {
+    // ready: the network is loaded. detector: faces can be found (also without a trained network)
     async info() {
+      let error = null, detector = false;
       try {
         const r = await fetch(`${MODEL_URL}/model.json`, { cache: "no-cache" });
-        if (!r.ok) throw new Error("No trained network has been exported to this page yet. Train it (python -m src.train), then run  python -m src.export_web  and publish again.");
-        meta = await r.json();
+        if (r.ok) meta = await r.json();
+        else error = "No trained network has been exported to this page yet, so the faces are found but their emotion is not. Train it (python -m src.train), then run  python -m src.export_web  and publish again.";
+      } catch (e) {
+        error = e.message;
+      }
+      try {
         worker = new Worker("emotion-worker.js");
         worker.onmessage = (e) => {
           const w = waiting.get(e.data.id);
@@ -50,12 +56,14 @@
           waiting.delete(e.data.id);
           e.data.error ? w.reject(new Error(e.data.error)) : w.resolve(e.data);
         };
-        await call({ type: "load", url: MODEL_URL });
-        return { ready: true, error: null, val_acc: meta.val_acc, train_samples: meta.train_samples, epoch: meta.epoch,
-                 device: "in this browser", emotions: meta.categories };
+        await call({ type: "load", url: MODEL_URL, model: !!meta });
+        detector = true;
       } catch (e) {
-        return { ready: false, error: e.message, emotions: meta ? meta.categories : FALLBACK };
+        error = (error ? error + "\n" : "") + `Could not start the analysis: ${e.message}`;
+        meta = null;
       }
+      return { ready: !!meta, detector, error, val_acc: meta?.val_acc, train_samples: meta?.train_samples, epoch: meta?.epoch,
+               device: "in this browser", emotions: meta ? meta.categories : FALLBACK };
     },
 
     // canvas: the frame to analyze. live: a camera frame (faster settings) or a photo

@@ -37,6 +37,7 @@ async function init() {
     state.emotions = info.emotions;
     state.emotions.forEach((e) => (state.byKey[e.key] = e));
     state.ready = info.ready;
+    state.detector = info.detector;           // faces can be found even before a network is exported
     buildBars();
     buildLegend();
     if (info.ready) {
@@ -50,8 +51,8 @@ async function init() {
           `For full training: <code>python -m src.train</code>. FER-2013 has about 28,000 training images, and the expected accuracy is 63% to 68%.`);
       }
     } else {
-      setStatus("err", "Model not loaded");
-      showBanner(`Could not load the model:\n${info.error.replace(/(python -m [\w.]+)/g, "<code>$1</code>")}`);
+      setStatus("err", info.detector ? "No trained network - finding faces only" : "Model not loaded");
+      showBanner(info.error.replace(/(python -m [\w.]+)/g, "<code>$1</code>"));
     }
   } catch (e) {
     setStatus("err", "Could not load the model");
@@ -144,6 +145,8 @@ function applyMirror() {
 
 async function captureLoop() {
   while (state.mode === "camera") {
+    // a phone that is turned changes the picture's shape: follow it, so faces are not squeezed
+    if (video.videoWidth && Math.abs(video.videoHeight / video.videoWidth - state.capH / state.capW) > 0.02) setSize(video.videoWidth, video.videoHeight);
     cctx.drawImage(video, 0, 0, state.capW, state.capH);
     await analyze(capture, true);
     await new Promise((r) => setTimeout(r, 30));
@@ -152,7 +155,7 @@ async function captureLoop() {
 
 // ---------------------------------------------------------------- analysis (backend.js, in a background thread)
 async function analyze(canvas, live = false) {
-  if (!state.ready) return;
+  if (!state.ready && !state.detector) return;
   const t0 = performance.now();
   try {
     const data = await Backend.predict(canvas, { gradcam: $("camToggle").checked, live });
@@ -181,7 +184,14 @@ function handleResult(data, ms) {
   $("latency").textContent = Math.round(ms);
   $("faceCount").textContent = data.faces.length;
 
-  const main = data.faces[0];
+  const main = data.faces[0] && data.faces[0].probs ? data.faces[0] : null;
+  if (!main && data.faces.length) {                    // a face was found, but there is no network to read it
+    updatePanel(null);
+    $("moodEmoji").textContent = "🙂";
+    $("moodName").textContent = data.faces.length > 1 ? `${data.faces.length} faces found` : "Face found";
+    $("moodConf").textContent = "Reading the emotion needs a trained network (see the note above)";
+    return;
+  }
   if (main) {
     const p = state.emotions.map((e) => main.probs[e.key]);
     state.rawTop = p;
@@ -251,7 +261,7 @@ function drawOverlay() {
   const lw = 1 / k;  // line width in canvas pixels
 
   state.faces.forEach((f, i) => {
-    const e = state.byKey[f.top];
+    const e = f.top ? state.byKey[f.top] : { color: "#8c9bab", emoji: "🙂", name: "Face" };
     let [x, y, w, h] = f.box;
     if (mir) x = W - x - w;
 
@@ -291,7 +301,7 @@ function drawOverlay() {
     const fs = Math.min(Math.max(w * 0.11, 15 * OVERLAY_SCALE * lw), 30 * OVERLAY_SCALE * lw);
     octx.font = `700 ${fs}px Assistant, system-ui, sans-serif`;
     octx.direction = "ltr";
-    const label = `${e.emoji} ${e.name} ${Math.round(f.confidence * 100)}%`;
+    const label = f.top ? `${e.emoji} ${e.name} ${Math.round(f.confidence * 100)}%` : "Face found";
     const tw = octx.measureText(label).width;
     const padX = fs * 0.5, bh = fs * 1.55;
     const bx = x + w / 2 - tw / 2 - padX;
@@ -305,6 +315,7 @@ function drawOverlay() {
     octx.fillText(label, x + w / 2, by + bh / 2 + fs * 0.05);
 
     // small meter under the face: the top 3 emotions
+    if (!f.probs) return;
     const top3 = Object.entries(f.probs).sort((a, b) => b[1] - a[1]).slice(0, 3);
     const barH = Math.max(4, h * 0.035), gap = barH * 0.8;
     top3.forEach(([key, p], j) => {

@@ -307,6 +307,11 @@ and open http://localhost:8000 (opening `docs/index.html` directly as a file doe
 its workflow publishes this folder's `docs/` at `https://<your-user>.github.io/<repository>/maze/` (the
 README at the top of the repository explains the one-time setup).
 
+**On phones and tablets:** "Fly it yourself" gets touch controls: a joystick for the left thumb (it appears
+where the thumb lands; push up / down for the nose, left / right to turn), a throttle bar for the right thumb
+(up = faster) and two roll buttons. The view gets wider when the phone is upright, and fills the screen when
+it is sideways (the better way to fly). A computer with a keyboard works as before.
+
 **What is different on the web page:** the mazes come from a JavaScript random generator, so maze #123 on
 the page is not the maze with seed 123 in Python, but it is built by exactly the same rules.
 

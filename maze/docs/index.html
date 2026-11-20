@@ -32,6 +32,12 @@
       </div>
       <p class="status" id="status"></p>
       <div class="overlay" id="overlay"></div>
+      <!-- touch controls (phones and tablets, while flying): a joystick on the left, throttle and roll on the right -->
+      <div class="touch" id="touch" hidden>
+        <div class="stick-zone" id="stickZone"><div class="stick" id="stick"><i id="knob"></i></div></div>
+        <div class="thr" id="thr"><i id="thrFill"></i><span>throttle</span></div>
+        <div class="rolls"><button id="rollL" aria-label="Roll left">⟲</button><button id="rollR" aria-label="Roll right">⟳</button></div>
+      </div>
     </section>
 
     <aside class="side">

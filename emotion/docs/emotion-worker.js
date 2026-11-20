@@ -20,9 +20,11 @@ onmessage = async (e) => {
   const m = e.data;
   try {
     if (m.type === "load") {
-      M = await (await fetch(`${m.url}/model.json`, { cache: "no-cache" })).json();
-      buf = new Float32Array(await (await fetch(`${m.url}/weights.bin`, { cache: "no-cache" })).arrayBuffer());
       cascade = new Faces.Cascade(await (await fetch("face_cascade.json")).json());
+      if (m.model) {                                       // without a trained network, only the faces are found
+        M = await (await fetch(`${m.url}/model.json`, { cache: "no-cache" })).json();
+        buf = new Float32Array(await (await fetch(`${m.url}/weights.bin`, { cache: "no-cache" })).arrayBuffer());
+      }
       postMessage({ id: m.id, ok: true });
     } else if (m.type === "analyze") {
       const { gray, W, H } = m;
@@ -32,6 +34,7 @@ onmessage = async (e) => {
       const boxes = Faces.detectFaces(cascade, small, dw, dh, 4).map((r) => r.map((v) => Math.round(v * s)));
       const faces = boxes.map((box) => {
         const cb = expandBox(box, W, H);
+        if (!M) return { box, crop_box: cb, probs: null, top: null, confidence: 0, cam: null };
         const face48 = Faces.resizeArea(crop(gray, W, cb), cb[2], cb[3], 48, 48);
         const { probs, cam } = EmotionNet.predictFace(face48, M, buf, m.gradcam, m.tta);
         let top = 0;

@@ -104,3 +104,41 @@ select {
 .keys { list-style: none; padding: 0; margin: 4px 0 12px; display: grid; gap: 6px; font-size: 14px; }
 .card .field { margin: 4px 0 14px; }
 .card .note { font-size: 12px; margin: -4px 0 12px; }
+
+/* ---------- touch controls (phones and tablets) ---------- */
+.stage { touch-action: none; }
+.touch { position: absolute; inset: 0; -webkit-user-select: none; user-select: none; }
+.touch[hidden] { display: none; }
+.stick-zone { position: absolute; left: 0; top: 0; bottom: 0; width: 62%; }
+.stick { position: absolute; left: 22px; bottom: 96px; width: 120px; height: 120px; margin: 0; border-radius: 50%;
+         border: 2px solid rgba(120, 255, 110, 0.45); background: rgba(10, 30, 10, 0.25); }
+.stick.active { border-color: rgba(120, 255, 110, 0.85); }
+.stick i { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%;
+           background: rgba(120, 255, 110, 0.55); box-shadow: 0 0 14px rgba(120, 255, 110, 0.6); }
+.thr { position: absolute; right: 14px; top: 16%; bottom: 26%; width: 46px; border-radius: 23px; overflow: hidden;
+       border: 2px solid rgba(120, 255, 110, 0.45); background: rgba(10, 30, 10, 0.25); }
+.thr i { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(120, 255, 110, 0.45); }
+.thr span { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%) rotate(-90deg); transform-origin: center;
+            font-size: 11px; color: #d8ffd0; white-space: nowrap; bottom: 50%; }
+.rolls { position: absolute; right: 8px; bottom: 12px; display: flex; gap: 8px; }
+.rolls button { width: 48px; height: 48px; border-radius: 50%; border: 2px solid rgba(120, 255, 110, 0.45);
+                background: rgba(10, 30, 10, 0.35); color: #d8ffd0; font-size: 22px; touch-action: none; }
+.rolls button.on { background: rgba(120, 255, 110, 0.5); }
+@media (pointer: coarse) { .btn kbd { display: none; } }
+/* phones: a taller picture when the phone is upright, and the whole screen height when it is sideways */
+@media (max-width: 700px) {
+  .layout { padding: 6px 10px 20px; }
+  .stage { aspect-ratio: 4 / 5; max-height: 75vh; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .stage { aspect-ratio: auto; height: calc(100vh - 12px); max-height: none; }
+}
+/* the start and result cards fit (and scroll) inside the picture on small screens */
+.overlay { padding: 10px; }
+.overlay .card { max-height: 100%; overflow-y: auto; touch-action: pan-y; }
+@media (max-height: 520px) {
+  .overlay .card { padding: 14px 18px; }
+  .card h2 { font-size: 18px; }
+  .card .long { display: none; }
+  .keys { font-size: 13px; gap: 3px; margin-bottom: 8px; }
+}

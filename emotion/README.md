@@ -266,6 +266,11 @@ and the images you collected yourself are photos of people (the repository's `.g
   pass per face (a few frames per second on a laptop); for a photo it also adds the mirror image, like the
   server. A network trained with `--width 32` is about 4 times faster
 
+* **Before a network is exported**, the page still finds the faces and marks them ("Face found"), so the
+  camera and the detector can be checked on any device. Reading the emotion needs the exported network
+* **On phones:** the camera works in the browser of a phone too (GitHub Pages is https). When the phone is
+  turned, the page follows the new shape of the picture
+
 **Checked during development:** the JavaScript network gives the same probabilities as the network computed
 with PyTorch's rules to within 0.000001, with and without the mirror image, and the same Grad-CAM map to
 within 0.00001. The JavaScript face detector found 11 of 12 faces from the Labeled Faces in the Wild

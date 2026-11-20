@@ -134,3 +134,29 @@ figcaption { color: var(--muted); font-size: 11px; margin-top: 4px; line-height:
 .saved-note { line-height: 1.5; }
 .saved-note code { font-size: 11px; }
 .linkbtn { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-decoration: underline; cursor: pointer; }
+
+/* ---------- phones and tablets ---------- */
+.stage { touch-action: none; }                    /* a swipe on the picture moves the runner, not the page */
+.pad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: -8px; }
+.pad[hidden] { display: none; }
+.pad button { font: 700 26px/1 system-ui, sans-serif; padding: 18px 0; border-radius: 14px; border: 1px solid #ffffff22;
+              background: #1b2a40; color: var(--text); touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+.pad button:active { background: var(--you); color: #10161f; }
+@media (pointer: coarse) { .btn kbd { display: none; } }
+@media (max-width: 700px) {
+  .layout { padding: 6px 12px 20px; gap: 12px; }
+  .stage { aspect-ratio: 3 / 4; max-height: 68vh; }
+  .top { padding-left: 12px; padding-right: 12px; }
+  .banner { margin: 4px 12px 10px; }
+  .hud { inset: 10px 10px auto 10px; gap: 8px; }
+  .hud-main { padding: 6px 10px 8px; }
+  .hud-main b { font-size: 24px; white-space: nowrap; }
+  .hud-main span { display: none; }
+  .chip { font-size: 12px; padding: 6px 10px; min-width: 0; }
+  .chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chip b { white-space: nowrap; }
+  .toast { font-size: 13px; white-space: normal; width: max-content; max-width: 88%; text-align: center; }
+  .top h1 { font-size: 28px; }
+  .top p { font-size: 14px; }
+  .card-o { margin: 0 12px; }
+}

@@ -7,6 +7,7 @@
 const { MazeData, Ship, V } = window.MazeSim;
 const { CockpitView, MapView, M } = window.Neon;
 const $ = (id) => document.getElementById(id);
+const TOUCH = matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;   // a phone or a tablet
 
 const S = {
   info: null, P: null, maze: null, mode: "watch", pilot: null, rooms: 4, seed: 1,
@@ -83,13 +84,17 @@ function showReady() {
   const ai = S.P.v_max;
   $("overlay").innerHTML = `<div class="card ready">
     <h2>Fly the maze yourself</h2>
-    <ul class="keys">
+    ${TOUCH ? `<ul class="keys">
+      <li><b>Left thumb:</b> the joystick steers the nose (up, down, left, right)</li>
+      <li><b>Right thumb:</b> the throttle bar (up = faster) · ⟲ ⟳ roll</li>
+    </ul>
+    <p class="note">Tip: turn the phone sideways for a bigger view.</p>` : `<ul class="keys">
       <li><kbd>↑</kbd><kbd>↓</kbd> nose toward the top / bottom of the screen</li>
       <li><kbd>←</kbd><kbd>→</kbd> or <kbd>A</kbd><kbd>D</kbd> turn toward the left / right of the screen</li>
       <li><kbd>W</kbd><kbd>S</kbd> more / less throttle</li>
       <li><kbd>Q</kbd><kbd>E</kbd> roll (optional - in space there is no "up")</li>
-    </ul>
-    <p>Follow the yellow beacon: steer toward it on the screen. The white ring shows where the ship is really
+    </ul>`}
+    <p class="long">Follow the yellow beacon: steer toward it on the screen. The white ring shows where the ship is really
        drifting, so brake before the turns. The cyan triangle is the AI flying the same maze.</p>
     <label class="field">Your top speed
       <select id="vmax">
@@ -105,6 +110,7 @@ function showReady() {
 function launch() {
   if (S.mode !== "fly" || S.phase !== "ready") return;
   $("overlay").innerHTML = "";
+  if (TOUCH) { document.querySelector(".stage").scrollIntoView({ behavior: "smooth", block: "start" }); setThrottle(S.throttle); }
   S.phase = "countdown"; S.phaseT = 0;
 }
 
@@ -150,6 +156,8 @@ function frame(now) {
     if (S.phase === "over" && S.phaseT > 4 && $("auto").checked) newMaze();
   }
 
+  const showTouch = TOUCH && S.mode === "fly" && (S.phase === "countdown" || S.phase === "flying");
+  if ($("touch").hidden === showTouch) { $("touch").hidden = !showTouch; if (!showTouch) resetStick(); }
   if (S.mode === "fly") {
     if (S.phase === "countdown" && S.phaseT > 3) { S.phase = "flying"; S.phaseT = 0; S.acc = 0; }
     if (S.phase === "flying") {
@@ -175,11 +183,13 @@ function frame(now) {
 
 function manualAction() {
   const k = S.keys;
-  const pitch = (k.ArrowUp ? 1 : 0) - (k.ArrowDown ? 1 : 0);
-  const yaw = (k.ArrowRight || k.d ? 1 : 0) - (k.ArrowLeft || k.a ? 1 : 0);
-  const roll = (k.e ? 1 : 0) - (k.q ? 1 : 0);
+  const clamp1 = (v) => Math.max(-1, Math.min(1, v));
+  const pitch = clamp1((k.ArrowUp ? 1 : 0) - (k.ArrowDown ? 1 : 0) + T.pitch);         // keyboard + joystick
+  const yaw = clamp1((k.ArrowRight || k.d ? 1 : 0) - (k.ArrowLeft || k.a ? 1 : 0) + T.yaw);
+  const roll = clamp1((k.e ? 1 : 0) - (k.q ? 1 : 0) + T.roll);
   if (k.w) S.throttle = Math.min(1, S.throttle + 0.12);
   if (k.s) S.throttle = Math.max(-1, S.throttle - 0.12);
+  if (k.w || k.s) setThrottle(S.throttle);
   S.act = [S.act[0] + (pitch - S.act[0]) * 0.6, S.act[1] + (yaw - S.act[1]) * 0.6, S.throttle];
   return [...S.act, roll];
 }
@@ -244,7 +254,10 @@ function draw(time, ghost) {
     const j = S.shake * 0.08;
     cam = { ...pose, pos: V.add(pose.pos, [Math.sin(time * 61) * j, Math.cos(time * 53) * j, Math.sin(time * 47) * j]) };
   }
-  cockpit.render(cam, time, S.frameMs);
+  // a tall picture (a phone held upright) gets a wider view, so the sides of the corridor stay visible
+  const vw = $("view").clientWidth, vh = Math.max(1, $("view").clientHeight), aspect = vw / vh;
+  const fov = aspect >= 1.3 ? 78 : (2 * Math.atan(Math.tan((39 * Math.PI) / 180) * Math.min(1.7, 1.3 / aspect)) * 180) / Math.PI;
+  cockpit.render(cam, time, S.frameMs, fov);
   drawHud(pose, ghost, time);
   const ships = [{ pos: pose.pos, color: [0.3, 0.95, 1, 1], size: 11 }];
   if (ghost) ships.push({ pos: ghost.pose.pos, color: [1, 1, 1, 0.8], size: 8 });
@@ -380,6 +393,59 @@ window.addEventListener("keydown", (e) => {
 window.addEventListener("keyup", (e) => { const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; S.keys[k] = false; });
 window.addEventListener("blur", () => { S.keys = {}; });
 
+// ---------------------------------------------------------------- touch controls
+// the joystick: put the left thumb anywhere on the left part of the picture and push. The farther from where
+// the thumb landed (up to 50 px), the harder the ship turns: up / down = the nose, left / right = turning.
+const T = { pitch: 0, yaw: 0, roll: 0, stickId: null, thrId: null, x0: 0, y0: 0 };
+const STICK_R = 50;
+function moveKnob(dx, dy) { $("knob").style.transform = `translate(${dx}px, ${dy}px)`; }
+function resetStick() {
+  T.pitch = T.yaw = T.roll = 0; T.stickId = T.thrId = null;
+  const st = $("stick"); st.classList.remove("active"); st.style.left = ""; st.style.top = ""; st.style.bottom = "";
+  moveKnob(0, 0);
+  $("rollL").classList.remove("on"); $("rollR").classList.remove("on");
+}
+$("stickZone").addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  T.stickId = e.pointerId; T.x0 = e.clientX; T.y0 = e.clientY;
+  $("stickZone").setPointerCapture(e.pointerId);
+  const r = $("stickZone").getBoundingClientRect(), st = $("stick");
+  st.style.left = `${e.clientX - r.left - 60}px`; st.style.top = `${e.clientY - r.top - 60}px`; st.style.bottom = "auto";
+  st.classList.add("active");
+});
+$("stickZone").addEventListener("pointermove", (e) => {
+  if (e.pointerId !== T.stickId) return;
+  let dx = e.clientX - T.x0, dy = e.clientY - T.y0;
+  const d = Math.hypot(dx, dy);
+  if (d > STICK_R) { dx *= STICK_R / d; dy *= STICK_R / d; }
+  moveKnob(dx, dy);
+  const dead = (v) => (Math.abs(v) < 0.12 ? 0 : v);         // a small dead zone, so "straight" is easy to hold
+  T.yaw = dead(dx / STICK_R); T.pitch = dead(-dy / STICK_R);
+});
+for (const ev of ["pointerup", "pointercancel"]) {
+  $("stickZone").addEventListener(ev, (e) => {
+    if (e.pointerId !== T.stickId) return;
+    T.stickId = null; T.pitch = T.yaw = 0;
+    const st = $("stick"); st.classList.remove("active"); st.style.left = ""; st.style.top = ""; st.style.bottom = "";
+    moveKnob(0, 0);
+  });
+}
+// the throttle bar: the height of the right thumb on the bar sets the throttle
+function setThrottle(v) { S.throttle = v; $("thrFill").style.height = `${((v + 1) / 2) * 100}%`; }
+function thrFrom(e) {
+  const r = $("thr").getBoundingClientRect();
+  setThrottle(Math.max(-1, Math.min(1, 1 - (2 * (e.clientY - r.top)) / r.height)));
+}
+$("thr").addEventListener("pointerdown", (e) => { e.preventDefault(); T.thrId = e.pointerId; $("thr").setPointerCapture(e.pointerId); thrFrom(e); });
+$("thr").addEventListener("pointermove", (e) => { if (e.pointerId === T.thrId) thrFrom(e); });
+for (const ev of ["pointerup", "pointercancel"]) $("thr").addEventListener(ev, (e) => { if (e.pointerId === T.thrId) T.thrId = null; });
+// roll: hold a button
+for (const [id, dir] of [["rollL", -1], ["rollR", 1]]) {
+  const b = $(id);
+  b.addEventListener("pointerdown", (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); T.roll = dir; b.classList.add("on"); });
+  for (const ev of ["pointerup", "pointercancel"]) b.addEventListener(ev, () => { if (T.roll === dir) T.roll = 0; b.classList.remove("on"); });
+}
+
 for (const b of document.querySelectorAll("#modes button")) {
   b.onclick = () => {
     S.mode = b.dataset.mode;
@@ -388,7 +454,12 @@ for (const b of document.querySelectorAll("#modes button")) {
     $("flyHelp").hidden = S.mode !== "fly";
     b.blur();
     start();
+    if (TOUCH && S.mode === "fly") document.querySelector(".stage").scrollIntoView({ behavior: "smooth", block: "start" });
   };
+}
+if (TOUCH) {                                                  // the help under the menus, for touch screens
+  $("flyHelp").innerHTML = `<p>Left thumb: the joystick steers the nose. Right thumb: the throttle bar (up = faster). ⟲ ⟳ roll.</p>
+    <p>Follow the yellow beacon. The white ring shows where you are really drifting. Race the AI ghost (cyan).</p>`;
 }
 for (const b of document.querySelectorAll("#speed button")) {
   b.onclick = () => {
