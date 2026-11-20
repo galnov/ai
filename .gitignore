@@ -1,0 +1,10 @@
+# for every project folder
+venv/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.ipynb_checkpoints/
+
+# big datasets: they can be downloaded again at any time
+*/data/raw/

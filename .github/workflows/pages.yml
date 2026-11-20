@@ -1,0 +1,65 @@
+# Publishes the web pages of all the projects to GitHub Pages, on every push to main.
+#
+# The site that comes out:
+#   https://<user>.github.io/<repo>/            the home page (index.html + projects.json)
+#   https://<user>.github.io/<repo>/doodle/     the doodle project's docs/ folder
+#   ...                                         one folder for every project that has docs/index.html
+#
+# Setup, once: Settings -> Pages -> Build and deployment -> Source: GitHub Actions
+name: Publish the web pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:            # also lets you run it by hand from the Actions tab
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Collect the home page and every project's docs/ folder
+        run: |
+          mkdir -p _site
+          cp index.html projects.json _site/
+          web=()
+          folders=()
+          for dir in */; do
+            name="${dir%/}"
+            [ "$name" = "_site" ] && continue
+            folders+=("\"$name\"")
+            if [ -f "$name/docs/index.html" ]; then
+              cp -r "$name/docs" "_site/$name"
+              web+=("\"$name\"")
+              echo "Published: $name"
+            fi
+          done
+          # which projects have a web page, and which folders exist (for the home page)
+          echo "{\"web\": [$(IFS=,; echo "${web[*]}")], \"folders\": [$(IFS=,; echo "${folders[*]}")]}" > _site/status.json
+          cat _site/status.json
+          touch _site/.nojekyll
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
