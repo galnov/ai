@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guess What I'm Drawing | A Neural Network That Recognizes Drawings</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✏️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Varela+Round&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="top">
+    <h1>Guess What I'm Drawing</h1>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-mode="free" aria-selected="true">Free drawing</button>
+      <button role="tab" data-mode="game">Game: 6 drawings</button>
+      <button role="tab" data-mode="gallery">What I know</button>
+    </nav>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <main class="layout" id="drawLayout">
+    <aside class="side">
+      <div class="bubble" id="bubble">
+        <div class="bubble-emoji" id="bubbleEmoji">✏️</div>
+        <div class="bubble-text" id="bubbleText">Draw something, and I'll guess what it is!</div>
+        <div class="bubble-sub" id="bubbleSub">I know 42 things. You can see them in the "What I know" tab</div>
+      </div>
+
+      <section class="card">
+        <h2>My guesses</h2>
+        <ol class="guesses" id="guesses"></ol>
+      </section>
+
+      <section class="card sees">
+        <div>
+          <h2>What the network sees</h2>
+          <p class="hint">Your drawing after it was shrunk to 28 by 28 pixels, exactly like the drawings the network was trained on.</p>
+        </div>
+        <canvas id="netView" width="28" height="28"></canvas>
+      </section>
+    </aside>
+
+    <section class="paper-wrap">
+      <div class="task" id="task" hidden>
+        <span class="task-label">Draw:</span>
+        <span class="task-emoji" id="taskEmoji"></span>
+        <span class="task-name" id="taskName"></span>
+        <span class="task-round" id="taskRound"></span>
+        <div class="timer"><div class="timer-fill" id="timerFill"></div></div>
+      </div>
+      <div class="paper" id="paper">
+        <canvas id="pad"></canvas>
+        <div class="flash" id="flash" hidden></div>
+      </div>
+      <div class="toolbar">
+        <button class="btn" id="undoBtn">Undo last stroke</button>
+        <button class="btn" id="clearBtn">Clear the page</button>
+        <span class="spacer"></span>
+        <label class="check"><input type="checkbox" id="voice"> Guess out loud</label>
+      </div>
+      <details class="teach" id="teach">
+        <summary>Help the network learn: save your drawing as an example</summary>
+        <div class="teach-row">
+          <label for="saveLabel">What did you draw?</label>
+          <select id="saveLabel"></select>
+          <button class="btn ink" id="saveBtn">Save as a training example</button>
+          <span class="saved" id="savedMsg" aria-live="polite"></span>
+        </div>
+        <p class="hint">Drawings are saved in the <code>data/custom</code> folder, and in the next training run they are added to the dataset drawings.</p>
+      </details>
+    </section>
+  </main>
+
+  <main class="gallery" id="gallery" hidden>
+    <p class="hint big">These are the 42 things the network can recognize. Click one to see how other people drew it in the dataset.</p>
+    <div class="cats" id="cats"></div>
+    <section class="samples card" id="samples" hidden>
+      <h2 id="samplesTitle"></h2>
+      <div class="sample-grid" id="sampleGrid"></div>
+    </section>
+  </main>
+
+  <div class="overlay" id="summary" hidden>
+    <div class="summary-card">
+      <h2 id="summaryTitle"></h2>
+      <div class="summary-grid" id="summaryGrid"></div>
+      <div class="summary-actions">
+        <button class="btn ink" id="againBtn">Another round</button>
+        <button class="btn" id="closeSummary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="gameStart" hidden>
+    <div class="summary-card start">
+      <h2>6 drawings, 20 seconds each</h2>
+      <p>I'll tell you what to draw, and you try to get me to recognize it before time runs out.</p>
+      <button class="btn ink big" id="goBtn">Let's go</button>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
