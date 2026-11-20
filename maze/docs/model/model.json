@@ -1,0 +1,162 @@
+{
+ "networks": [
+  {
+   "id": "ppo",
+   "label": "PPO network (2.9M steps)",
+   "layers": [
+    {
+     "in": 93,
+     "out": 128,
+     "act": "tanh",
+     "w": 0,
+     "b": 11904
+    },
+    {
+     "in": 128,
+     "out": 128,
+     "act": "tanh",
+     "w": 12032,
+     "b": 28416
+    },
+    {
+     "in": 128,
+     "out": 3,
+     "act": "none",
+     "w": 28544,
+     "b": 28928
+    }
+   ],
+   "norm": {
+    "mean": 28931,
+    "var": 29024
+   }
+  },
+  {
+   "id": "stage:upd_0001",
+   "label": "Learning stage: after 8K steps",
+   "layers": [
+    {
+     "in": 93,
+     "out": 128,
+     "act": "tanh",
+     "w": 29117,
+     "b": 41021
+    },
+    {
+     "in": 128,
+     "out": 128,
+     "act": "tanh",
+     "w": 41149,
+     "b": 57533
+    },
+    {
+     "in": 128,
+     "out": 3,
+     "act": "none",
+     "w": 57661,
+     "b": 58045
+    }
+   ],
+   "norm": {
+    "mean": 58048,
+    "var": 58141
+   }
+  },
+  {
+   "id": "stage:upd_0010",
+   "label": "Learning stage: after 82K steps",
+   "layers": [
+    {
+     "in": 93,
+     "out": 128,
+     "act": "tanh",
+     "w": 58234,
+     "b": 70138
+    },
+    {
+     "in": 128,
+     "out": 128,
+     "act": "tanh",
+     "w": 70266,
+     "b": 86650
+    },
+    {
+     "in": 128,
+     "out": 3,
+     "act": "none",
+     "w": 86778,
+     "b": 87162
+    }
+   ],
+   "norm": {
+    "mean": 87165,
+    "var": 87258
+   }
+  },
+  {
+   "id": "stage:upd_0020",
+   "label": "Learning stage: after 164K steps",
+   "layers": [
+    {
+     "in": 93,
+     "out": 128,
+     "act": "tanh",
+     "w": 87351,
+     "b": 99255
+    },
+    {
+     "in": 128,
+     "out": 128,
+     "act": "tanh",
+     "w": 99383,
+     "b": 115767
+    },
+    {
+     "in": 128,
+     "out": 3,
+     "act": "none",
+     "w": 115895,
+     "b": 116279
+    }
+   ],
+   "norm": {
+    "mean": 116282,
+    "var": 116375
+   }
+  },
+  {
+   "id": "stage:upd_0040",
+   "label": "Learning stage: after 328K steps",
+   "layers": [
+    {
+     "in": 93,
+     "out": 128,
+     "act": "tanh",
+     "w": 116468,
+     "b": 128372
+    },
+    {
+     "in": 128,
+     "out": 128,
+     "act": "tanh",
+     "w": 128500,
+     "b": 144884
+    },
+    {
+     "in": 128,
+     "out": 3,
+     "act": "none",
+     "w": 145012,
+     "b": 145396
+    }
+   ],
+   "norm": {
+    "mean": 145399,
+    "var": 145492
+   }
+  }
+ ],
+ "n_weights": 145585,
+ "obs_size": 93,
+ "v_max": 11.0
+}

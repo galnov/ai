@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Self-Driving Car | Reinforcement Learning</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏎️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Karantina:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="top">
+    <h1>Self-Driving Car</h1>
+    <nav class="modes" id="modes" role="tablist">
+      <button role="tab" data-mode="watch" aria-selected="true">Watch</button>
+      <button role="tab" data-mode="draw">Draw a track</button>
+      <button role="tab" data-mode="race">Race the AI</button>
+      <button role="tab" data-mode="stages">Learning stages</button>
+    </nav>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <main class="layout">
+    <aside class="panel">
+      <!-- settings for each mode -->
+      <section class="card" data-show="watch">
+        <h2>The track</h2>
+        <div class="track-picker">
+          <select id="presetSelect" aria-label="Choose a track"></select>
+          <button class="btn" id="randomBtn">Random track</button>
+        </div>
+        <label class="field">Number of cars <output id="nCarsOut">3</output>
+          <input type="range" id="nCars" min="1" max="8" value="3">
+        </label>
+      </section>
+
+      <section class="card" data-show="draw">
+        <h2>Draw a track</h2>
+        <p class="hint">Drag the mouse to draw a closed loop on the grass. When you let go, the track is closed and smoothed automatically, and the cars start driving on it.</p>
+        <label class="field">Road width <output id="widthOut">95</output>
+          <input type="range" id="trackWidth" min="70" max="130" step="5" value="95">
+        </label>
+        <p class="error" id="drawError" hidden></p>
+      </section>
+
+      <section class="card" data-show="race">
+        <h2>A 3-lap race</h2>
+        <p class="hint">Drive with the arrow keys or W A S D. The white car is yours.</p>
+        <button class="btn primary" id="raceBtn">Start race</button>
+      </section>
+
+      <section class="card" data-show="stages">
+        <h2>How the driver learned</h2>
+        <p class="hint">Each car drives with the "brain" from a different point in training. At first the network knows nothing, and within a few hundred updates it is already driving.</p>
+      </section>
+
+      <section class="card tower">
+        <h2>Timing board</h2>
+        <table>
+          <thead><tr><th>Driver</th><th>Laps</th><th>Current</th><th>Best</th><th>💥</th></tr></thead>
+          <tbody id="tower"></tbody>
+        </table>
+      </section>
+
+      <section class="card brain">
+        <h2>Brain of <span id="brainName">AI</span></h2>
+        <canvas id="brain"></canvas>
+        <p class="hint small">The network reads from left to right: 9 sensors and the speed, two hidden layers (14 of the 128 neurons in each layer are shown), and a Q value for each action. The chosen action is highlighted in yellow. Green lines are positive weights, red ones are negative.</p>
+      </section>
+    </aside>
+
+    <section class="stage-wrap">
+      <div class="stage" id="stage">
+        <canvas id="world"></canvas>
+        <div class="countdown" id="countdown" hidden></div>
+        <div class="results" id="results" hidden>
+          <h2 id="resultsTitle"></h2>
+          <ol id="resultsList"></ol>
+          <button class="btn primary" id="againBtn">Race again</button>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn" id="pauseBtn">Pause</button>
+        <button class="btn" id="restartBtn">Restart</button>
+        <div class="seg" role="group" aria-label="Simulation speed">
+          <button data-speed="1" aria-pressed="true">×1</button>
+          <button data-speed="2">×2</button>
+          <button data-speed="4">×4</button>
+        </div>
+        <span class="spacer"></span>
+        <label class="check"><input type="checkbox" id="showRays" checked> Sensors</label>
+        <label class="check"><input type="checkbox" id="showTrails" checked> Speed trail</label>
+      </div>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

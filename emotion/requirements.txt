@@ -1,0 +1,9 @@
+torch>=2.1
+torchvision>=0.16
+# version 4 - because it ships with the face detector file (Haar cascade)
+opencv-python>=4.8,<5
+flask>=3.0
+numpy>=1.24
+pillow>=10.0
+matplotlib>=3.7
+scikit-learn>=1.3

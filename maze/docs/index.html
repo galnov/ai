@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Maze Pilot | reinforcement learning in a 3D maze</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1>Maze Pilot</h1>
+      <p>A spaceship that taught itself to fly through narrow 3D mazes, with reinforcement learning (PPO).</p>
+    </div>
+    <nav class="modes" id="modes">
+      <button data-mode="watch" aria-pressed="true">Watch the AI</button>
+      <button data-mode="fly" aria-pressed="false">Fly it yourself</button>
+    </nav>
+  </header>
+  <div class="banner" id="banner" hidden></div>
+
+  <main class="layout">
+    <section class="stage">
+      <canvas id="view"></canvas>
+      <canvas id="hud"></canvas>
+      <div class="stats">
+        <div><small>Time</small><b id="sTime">0.0 s</b></div>
+        <div><small>Speed</small><b id="sSpeed">0.0 m/s</b></div>
+        <div><small>To the exit</small><b id="sLeft">-</b></div>
+        <div class="prog"><i id="sProg"></i></div>
+      </div>
+      <p class="status" id="status"></p>
+      <div class="overlay" id="overlay"></div>
+    </section>
+
+    <aside class="side">
+      <section class="panel">
+        <label class="field">Pilot <select id="pilot"></select></label>
+        <div class="split">
+          <label class="field">Maze size
+            <select id="rooms">
+              <option value="3">3×3×3 rooms</option>
+              <option value="4" selected>4×4×4 rooms</option>
+              <option value="5">5×5×5 rooms</option>
+              <option value="6">6×6×6 rooms</option>
+            </select>
+          </label>
+          <button class="btn" id="newMaze">New maze</button>
+        </div>
+        <div id="watchOnly" class="split">
+          <div class="seg" id="speed">
+            <button data-v="1" aria-pressed="true">×1</button><button data-v="2" aria-pressed="false">×2</button><button data-v="4" aria-pressed="false">×4</button>
+          </div>
+          <label class="check"><input type="checkbox" id="auto" checked> Next maze automatically</label>
+        </div>
+        <div id="flyHelp" class="help" hidden>
+          <p><kbd>↑</kbd><kbd>↓</kbd> nose up / down · <kbd>←</kbd><kbd>→</kbd> turn · <kbd>W</kbd><kbd>S</kbd> throttle · <kbd>Q</kbd><kbd>E</kbd> roll</p>
+          <p>Follow the yellow beacon. The white ring shows where you are really drifting. Race the AI ghost (cyan).</p>
+        </div>
+        <p class="maze" id="mazeInfo"></p>
+      </section>
+
+      <section class="panel">
+        <h2>What the pilot sees</h2>
+        <div class="sees">
+          <canvas id="depth" width="180" height="180"></canvas>
+          <div>
+            <p class="note">The depth camera: 81 rays over 100°. Bright = a wall is close.</p>
+            <div id="controls" class="controls"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>The maze from outside</h2>
+        <canvas id="map"></canvas>
+        <p class="note"><i class="k path"></i>the way out <i class="k trail"></i>flown so far <i class="k exit"></i>exit</p>
+      </section>
+    </aside>
+  </main>
+
+  <script src="ship.js"></script>
+  <script src="mlp.js"></script>
+  <script src="backend.js"></script>
+  <script src="neon.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

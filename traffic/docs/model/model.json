@@ -1,0 +1,140 @@
+{
+ "agent": {
+  "val_wait": 8.045487721311313,
+  "baselines": {
+   "fixed": 14.367982038750634,
+   "max_queue": 10.954736124992955
+  }
+ },
+ "counter": {
+  "layers": [
+   {
+    "type": "conv",
+    "in": 1,
+    "out": 32,
+    "k": 3,
+    "dil": 1,
+    "act": "relu",
+    "w": 4738,
+    "b": 5026
+   },
+   {
+    "type": "conv",
+    "in": 32,
+    "out": 32,
+    "k": 3,
+    "dil": 1,
+    "act": "relu",
+    "w": 5058,
+    "b": 14274
+   },
+   {
+    "type": "maxpool"
+   },
+   {
+    "type": "conv",
+    "in": 32,
+    "out": 64,
+    "k": 3,
+    "dil": 1,
+    "act": "relu",
+    "w": 14306,
+    "b": 32738
+   },
+   {
+    "type": "conv",
+    "in": 64,
+    "out": 64,
+    "k": 3,
+    "dil": 1,
+    "act": "relu",
+    "w": 32802,
+    "b": 69666
+   },
+   {
+    "type": "maxpool"
+   },
+   {
+    "type": "conv",
+    "in": 64,
+    "out": 128,
+    "k": 3,
+    "dil": 1,
+    "act": "relu",
+    "w": 69730,
+    "b": 143458
+   },
+   {
+    "type": "conv",
+    "in": 128,
+    "out": 128,
+    "k": 3,
+    "dil": 1,
+    "act": "relu",
+    "w": 143586,
+    "b": 291042
+   },
+   {
+    "type": "conv",
+    "in": 128,
+    "out": 128,
+    "k": 3,
+    "dil": 2,
+    "act": "relu",
+    "w": 291170,
+    "b": 438626
+   },
+   {
+    "type": "conv",
+    "in": 128,
+    "out": 128,
+    "k": 3,
+    "dil": 4,
+    "act": "relu",
+    "w": 438754,
+    "b": 586210
+   },
+   {
+    "type": "conv",
+    "in": 128,
+    "out": 1,
+    "k": 1,
+    "dil": 1,
+    "act": "softplus",
+    "w": 586338,
+    "b": 586466
+   }
+  ],
+  "val_mae": 0.1448989361524582
+ },
+ "networks": [
+  {
+   "id": "agent",
+   "label": "DQN agent",
+   "layers": [
+    {
+     "in": 6,
+     "out": 64,
+     "act": "relu",
+     "w": 0,
+     "b": 384
+    },
+    {
+     "in": 64,
+     "out": 64,
+     "act": "relu",
+     "w": 448,
+     "b": 4544
+    },
+    {
+     "in": 64,
+     "out": 2,
+     "act": "none",
+     "w": 4608,
+     "b": 4736
+    }
+   ]
+  }
+ ],
+ "n_weights": 586467
+}

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Emotion Mirror | Emotion Recognition with Deep Learning</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>😄</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Secular+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <h1>Emotion Mirror</h1>
+      <p>A CNN recognizes your facial expression in real time</p>
+    </div>
+    <div class="status" id="status">
+      <span class="dot"></span><span id="statusText">Loading the model…</span>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <main class="layout">
+    <section class="stage-wrap">
+      <div class="stage" id="stage">
+        <video id="video" playsinline muted></video>
+        <canvas id="photo" hidden></canvas>
+        <canvas id="overlay"></canvas>
+
+        <div class="empty" id="empty">
+          <div class="empty-face">🙂</div>
+          <p>Start the camera or upload a photo to begin</p>
+          <button class="btn primary" id="startBtnBig">Start camera</button>
+        </div>
+
+        <div class="challenge" id="challenge" hidden>
+          <div class="ch-round" id="chRound"></div>
+          <div class="ch-emoji" id="chEmoji"></div>
+          <div class="ch-text" id="chText"></div>
+          <div class="ch-meter"><div class="ch-meter-fill" id="chMeter"></div></div>
+          <div class="ch-timer"><div class="ch-timer-fill" id="chTimer"></div></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn primary" id="camBtn">Start camera</button>
+        <label class="btn" for="fileInput">Upload photo</label>
+        <input type="file" id="fileInput" accept="image/*" hidden>
+        <button class="btn" id="snapBtn" disabled>Screenshot</button>
+        <button class="btn accent" id="challengeBtn" disabled>Challenge: copy the emotion</button>
+        <span class="spacer"></span>
+        <label class="toggle"><input type="checkbox" id="camToggle"><span></span>Heat map (Grad-CAM)</label>
+        <label class="toggle"><input type="checkbox" id="mirrorToggle" checked><span></span>Mirror</label>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="mood" id="mood">
+        <div class="mood-emoji" id="moodEmoji">·</div>
+        <div class="mood-name" id="moodName">Waiting for a face</div>
+        <div class="mood-conf" id="moodConf">&nbsp;</div>
+      </div>
+      <ul class="bars" id="bars"></ul>
+      <div class="meta">
+        <div><span id="faceCount">0</span> faces in frame</div>
+        <div><span id="fps">0</span> frames per second</div>
+        <div><span id="latency">0</span> ms per frame</div>
+        <div>Model accuracy: <span id="valAcc">—</span></div>
+      </div>
+    </aside>
+
+    <section class="timeline">
+      <div class="timeline-head">
+        <h2>Emotions over the last 30 seconds</h2>
+        <div class="legend" id="legend"></div>
+      </div>
+      <canvas id="timeline"></canvas>
+    </section>
+  </main>
+
+  <div class="result" id="result" hidden>
+    <div class="result-card">
+      <h2>Your result</h2>
+      <div class="result-score" id="resultScore"></div>
+      <ul class="result-list" id="resultList"></ul>
+      <button class="btn primary" id="resultClose">Close</button>
+    </div>
+  </div>
+
+  <canvas id="capture" hidden></canvas>
+  <script src="backend.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

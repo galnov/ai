@@ -1,0 +1,198 @@
+{
+ "networks": [
+  {
+   "id": "upd_0001",
+   "label": "After 8K steps",
+   "role": "actor",
+   "layers": [
+    {
+     "in": 11,
+     "out": 64,
+     "act": "tanh",
+     "w": 0,
+     "b": 704
+    },
+    {
+     "in": 64,
+     "out": 64,
+     "act": "tanh",
+     "w": 768,
+     "b": 4864
+    },
+    {
+     "in": 64,
+     "out": 2,
+     "act": "none",
+     "w": 4928,
+     "b": 5056
+    }
+   ],
+   "norm": {
+    "mean": 5058,
+    "var": 5069
+   }
+  },
+  {
+   "id": "upd_0020",
+   "label": "After 163K steps",
+   "role": "actor",
+   "layers": [
+    {
+     "in": 11,
+     "out": 64,
+     "act": "tanh",
+     "w": 5080,
+     "b": 5784
+    },
+    {
+     "in": 64,
+     "out": 64,
+     "act": "tanh",
+     "w": 5848,
+     "b": 9944
+    },
+    {
+     "in": 64,
+     "out": 2,
+     "act": "none",
+     "w": 10008,
+     "b": 10136
+    }
+   ],
+   "norm": {
+    "mean": 10138,
+    "var": 10149
+   }
+  },
+  {
+   "id": "upd_0040",
+   "label": "After 327K steps",
+   "role": "actor",
+   "layers": [
+    {
+     "in": 11,
+     "out": 64,
+     "act": "tanh",
+     "w": 10160,
+     "b": 10864
+    },
+    {
+     "in": 64,
+     "out": 64,
+     "act": "tanh",
+     "w": 10928,
+     "b": 15024
+    },
+    {
+     "in": 64,
+     "out": 2,
+     "act": "none",
+     "w": 15088,
+     "b": 15216
+    }
+   ],
+   "norm": {
+    "mean": 15218,
+    "var": 15229
+   }
+  },
+  {
+   "id": "upd_0070",
+   "label": "After 573K steps",
+   "role": "actor",
+   "layers": [
+    {
+     "in": 11,
+     "out": 64,
+     "act": "tanh",
+     "w": 15240,
+     "b": 15944
+    },
+    {
+     "in": 64,
+     "out": 64,
+     "act": "tanh",
+     "w": 16008,
+     "b": 20104
+    },
+    {
+     "in": 64,
+     "out": 2,
+     "act": "none",
+     "w": 20168,
+     "b": 20296
+    }
+   ],
+   "norm": {
+    "mean": 20298,
+    "var": 20309
+   }
+  },
+  {
+   "id": "best",
+   "label": "Trained network",
+   "role": "actor",
+   "layers": [
+    {
+     "in": 11,
+     "out": 64,
+     "act": "tanh",
+     "w": 20320,
+     "b": 21024
+    },
+    {
+     "in": 64,
+     "out": 64,
+     "act": "tanh",
+     "w": 21088,
+     "b": 25184
+    },
+    {
+     "in": 64,
+     "out": 2,
+     "act": "none",
+     "w": 25248,
+     "b": 25376
+    }
+   ],
+   "norm": {
+    "mean": 25378,
+    "var": 25389
+   }
+  },
+  {
+   "id": "best:critic",
+   "label": "Trained network (Critic)",
+   "role": "critic",
+   "layers": [
+    {
+     "in": 11,
+     "out": 64,
+     "act": "tanh",
+     "w": 25400,
+     "b": 26104
+    },
+    {
+     "in": 64,
+     "out": 64,
+     "act": "tanh",
+     "w": 26168,
+     "b": 30264
+    },
+    {
+     "in": 64,
+     "out": 1,
+     "act": "none",
+     "w": 30328,
+     "b": 30392
+    }
+   ],
+   "norm": {
+    "mean": 30393,
+    "var": 30404
+   }
+  }
+ ],
+ "n_weights": 30415,
+ "obs_size": 11
+}

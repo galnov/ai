@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A Drone That Learned to Fly | PPO</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚁</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&family=Suez+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1>A drone that learned to fly</h1>
+      <p>Nobody taught it. A neural network learned on its own, with reinforcement learning (PPO), to control the power of two propellers</p>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-mode="free" aria-selected="true">Free flight</button>
+      <button role="tab" data-mode="delivery">Delivery route</button>
+      <button role="tab" data-mode="stages">Learning stages</button>
+      <button role="tab" data-mode="swarm">Swarm show</button>
+    </nav>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <main class="layout">
+    <section class="stage-wrap">
+      <div class="stage">
+        <canvas id="sky"></canvas>
+        <div class="hint-float" id="hintFloat"></div>
+      </div>
+      <div class="under">
+        <div class="seg" id="speed" aria-label="Speed">
+          <button data-v="0.5">×½</button><button data-v="1" aria-pressed="true">×1</button><button data-v="2">×2</button>
+        </div>
+        <button class="btn" id="pause">Pause</button>
+        <span class="spacer"></span>
+        <label class="check" id="valueBox"><input type="checkbox" id="valueMap"> Critic value map</label>
+        <label class="check"><input type="checkbox" id="trails" checked> Trails</label>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <section class="card" id="modeCard">
+        <h2 id="modeTitle"></h2>
+        <p id="modeText"></p>
+        <div id="modeExtra"></div>
+      </section>
+
+      <section class="card">
+        <h2>Flight conditions</h2>
+        <label class="field">Wind <output id="windOut"></output>
+          <input type="range" id="wind" dir="ltr" min="-7" max="7" step="0.5" value="0">
+        </label>
+        <label class="field">Gusts <output id="gustOut"></output>
+          <input type="range" id="gust" dir="ltr" min="0" max="3" step="0.25" value="0">
+        </label>
+        <button class="btn wide" id="payload">Load a package (0.5 kg)</button>
+      </section>
+
+      <section class="card telemetry">
+        <h2>Flight instruments <small id="telName"></small></h2>
+        <div class="tel">
+          <canvas id="horizon" width="120" height="120"></canvas>
+          <dl>
+            <div><dt>Altitude</dt><dd id="alt">—</dd></div>
+            <div><dt>Speed</dt><dd id="spd">—</dd></div>
+            <div><dt>Tilt</dt><dd id="tilt">—</dd></div>
+            <div><dt>Distance to target</dt><dd id="dist">—</dd></div>
+          </dl>
+        </div>
+        <div class="thrust">
+          <div><span>Left propeller</span><div class="tbar"><i id="thrL"></i></div></div>
+          <div><span>Right propeller</span><div class="tbar"><i id="thrR"></i></div></div>
+        </div>
+        <p class="note">These are the two continuous numbers the network outputs, 25 times per second.</p>
+      </section>
+    </aside>
+  </main>
+
+  <script src="mlp.js"></script>
+  <script src="backend.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

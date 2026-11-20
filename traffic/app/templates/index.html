@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Intersection | Control Center</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚦</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="top">
+    <div class="title">
+      <div class="lamp"><i class="r"></i><i class="y"></i><i class="g"></i></div>
+      <div>
+        <h1>Smart Intersection</h1>
+        <p>Exactly the same traffic at two intersections: a regular traffic light vs. one run by a neural network</p>
+      </div>
+    </div>
+    <div class="clock"><span id="clock">00:00</span><small>simulation time</small></div>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <section class="controls">
+    <label class="ctl">Traffic
+      <select id="preset"></select>
+    </label>
+    <div class="ctl custom" id="customBox" hidden>
+      <label>North-South <output id="nsOut"></output><input type="range" id="ns" min="0" max="1100" step="50"></label>
+      <label>East-West <output id="ewOut"></output><input type="range" id="ew" min="0" max="1100" step="50"></label>
+    </div>
+    <div class="ctl">Camera weather
+      <div class="seg" id="weather"></div>
+    </div>
+    <div class="ctl">The AI counts with
+      <div class="seg" id="sensor">
+        <button data-v="camera">Cameras</button>
+        <button data-v="perfect">Perfect sensor</button>
+      </div>
+    </div>
+    <label class="ctl">Regular light
+      <select id="leftMode">
+        <option value="fixed">Fixed timing (30 s)</option>
+        <option value="max_queue">"Longest queue" (simple rule)</option>
+      </select>
+    </label>
+    <span class="spacer"></span>
+    <div class="seg" id="speed" aria-label="Speed">
+      <button data-v="1">×1</button><button data-v="4">×4</button><button data-v="16">×16</button>
+    </div>
+    <button class="btn" id="pause">Pause</button>
+    <button class="btn" id="reset">Restart</button>
+  </section>
+
+  <main class="grid">
+    <section class="side base">
+      <header>
+        <h2>Regular light</h2>
+        <div class="big"><span id="baseWait">—</span><small>average wait per vehicle (s)</small></div>
+      </header>
+      <canvas id="baseCanvas"></canvas>
+      <div class="mini"><span>Waiting now <b id="baseNow">0</b></span><span>Passed <b id="baseServed">0</b></span><span>Switches <b id="baseSw">0</b></span></div>
+    </section>
+
+    <section class="verdict" id="verdict">
+      <div class="pct" id="pct">—</div>
+      <div class="pct-label" id="pctLabel">Waiting for data…</div>
+    </section>
+
+    <section class="side ai">
+      <header>
+        <h2>AI light</h2>
+        <div class="big"><span id="aiWait">—</span><small>average wait per vehicle (s)</small></div>
+      </header>
+      <canvas id="aiCanvas"></canvas>
+      <div class="mini"><span>Waiting now <b id="aiNow">0</b></span><span>Passed <b id="aiServed">0</b></span><span>Switches <b id="aiSw">0</b></span></div>
+    </section>
+  </main>
+
+  <section class="lower">
+    <section class="panel cams">
+      <header>
+        <h2>The AI light's cameras</h2>
+        <label class="check"><input type="checkbox" id="heat" checked> Density map</label>
+      </header>
+      <p class="hint">In every camera, network 1 counts the cars in the incoming lane (left of the center line). The big number is the network's count, and below it is the true number.</p>
+      <div class="camwall" id="camwall"></div>
+    </section>
+
+    <section class="panel">
+      <header><h2>Waiting cars over time</h2></header>
+      <canvas id="chart"></canvas>
+      <div class="legend"><span><i class="base"></i>Regular light</span><span><i class="ai"></i>AI light</span></div>
+    </section>
+
+    <section class="panel brain">
+      <header><h2>Network 2's decision</h2></header>
+      <div class="obs" id="obs"></div>
+      <div class="qbars" id="qbars"></div>
+      <p class="hint">Every 5 seconds the network receives the counts and computes a Q value for each action: an estimate of the future reward, i.e. minus the accumulated waiting. That is why all values are negative, and the action with the higher (less negative) value is chosen.</p>
+    </section>
+  </section>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

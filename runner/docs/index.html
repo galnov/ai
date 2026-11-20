@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Runner AI | race the network</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏃</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <h1>Runner AI</h1>
+      <p>An endless runner where you race neural networks: one copied human players, one taught itself, one did both.</p>
+    </div>
+    <nav class="modes" id="modes">
+      <button data-mode="race" aria-pressed="true">Race the AI</button>
+      <button data-mode="watch" aria-pressed="false">Watch the AI</button>
+    </nav>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <main class="layout">
+    <section class="stage">
+      <canvas id="view"></canvas>
+      <div class="hud">
+        <div class="hud-main" id="hudYou"><small>You</small><b id="dist">0 m</b><span id="spd"></span></div>
+        <div class="chip" id="aiChip"><i></i><span id="aiName">AI</span><b id="aiDist">0 m</b></div>
+      </div>
+      <div class="count" id="count" hidden></div>
+      <div class="toast" id="toast" hidden></div>
+      <div class="overlay" id="overlay"></div>
+    </section>
+
+    <aside class="side">
+      <section class="card">
+        <h2>Opponent</h2>
+        <select id="opponent" aria-label="AI opponent"></select>
+        <div class="speed" id="speedBox" hidden>
+          <span>Speed</span>
+          <div class="seg" id="speed">
+            <button data-v="1" aria-pressed="true">×1</button><button data-v="2" aria-pressed="false">×2</button><button data-v="4" aria-pressed="false">×4</button>
+          </div>
+        </div>
+        <label class="field">Your name <input id="name" maxlength="24" placeholder="for the leaderboard"></label>
+        <label class="check"><input type="checkbox" id="record" checked> Record my runs as training data</label>
+      </section>
+
+      <section class="card brain">
+        <h2>Inside the AI</h2>
+        <div class="brain-grid">
+          <figure>
+            <canvas id="sees" width="120" height="250"></canvas>
+            <figcaption>What it sees: 48 m ahead in 3 lanes</figcaption>
+          </figure>
+          <div>
+            <div id="think" class="think"></div>
+            <p class="kind" id="thinkKind"></p>
+            <ul class="legend">
+              <li><i class="h"></i>hurdle</li><li><i class="b"></i>overhead bar</li><li><i class="t"></i>train</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Leaderboard</h2>
+        <ol class="board" id="board"></ol>
+        <p class="stat" id="h2h"></p>
+        <p class="stat" id="recStats"></p>
+        <p class="stat saved-note">Your runs are kept in this browser.
+          <button class="linkbtn" id="downloadRuns">Download my runs</button> to add them to the training data
+          (<code>python -m src.import_recordings my_runs.json</code>).</p>
+      </section>
+    </aside>
+  </main>
+
+  <script src="game.js"></script>
+  <script src="mlp.js"></script>
+  <script src="backend.js"></script>
+  <script src="engine3d.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

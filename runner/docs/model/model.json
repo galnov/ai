@@ -1,0 +1,97 @@
+{
+ "networks": [
+  {
+   "id": "combo",
+   "label": "Combo (imitation + RL)",
+   "kind": "q",
+   "layers": [
+    {
+     "in": 297,
+     "out": 256,
+     "act": "relu",
+     "w": 0,
+     "b": 76032
+    },
+    {
+     "in": 256,
+     "out": 256,
+     "act": "relu",
+     "w": 76288,
+     "b": 141824
+    },
+    {
+     "in": 256,
+     "out": 5,
+     "act": "none",
+     "w": 142080,
+     "b": 143360
+    }
+   ]
+  },
+  {
+   "id": "dqn",
+   "label": "DQN (RL from scratch)",
+   "kind": "q",
+   "layers": [
+    {
+     "in": 297,
+     "out": 256,
+     "act": "relu",
+     "w": 143365,
+     "b": 219397
+    },
+    {
+     "in": 256,
+     "out": 256,
+     "act": "relu",
+     "w": 219653,
+     "b": 285189
+    },
+    {
+     "in": 256,
+     "out": 5,
+     "act": "none",
+     "w": 285445,
+     "b": 286725
+    }
+   ]
+  },
+  {
+   "id": "imitation",
+   "label": "Imitation (learned from humans)",
+   "kind": "imitation",
+   "layers": [
+    {
+     "in": 297,
+     "out": 256,
+     "act": "relu",
+     "w": 286730,
+     "b": 362762
+    },
+    {
+     "in": 256,
+     "out": 256,
+     "act": "relu",
+     "w": 363018,
+     "b": 428554
+    },
+    {
+     "in": 256,
+     "out": 5,
+     "act": "none",
+     "w": 428810,
+     "b": 430090
+    }
+   ]
+  }
+ ],
+ "n_weights": 430095,
+ "obs_size": 297,
+ "actions": [
+  "Run",
+  "Left",
+  "Right",
+  "Jump",
+  "Slide"
+ ]
+}
