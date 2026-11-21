@@ -117,3 +117,30 @@ input[type="range"] { width: 100%; accent-color: var(--flag); }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* ---------- phones and tablets ---------- */
+/* under the track on a phone held upright; beside it (left and right) when the phone is sideways */
+.stage-wrap { position: relative; }
+.pedals { display: flex; justify-content: space-between; align-items: flex-end; margin: 10px 0 2px; pointer-events: none; }
+.pedals[hidden] { display: none; }
+.pg { display: flex; gap: 10px; pointer-events: auto; }
+.pedals button { width: 68px; height: 68px; border-radius: 16px; border: 2px solid #ffffff66; background: #10161fb0; color: #fff;
+                 font: 700 24px/1 system-ui, sans-serif; touch-action: none; -webkit-user-select: none; user-select: none; }
+.pedals .gas { background: #1f7a3ab8; font-size: 16px; height: 84px; }
+.pedals .brake { background: #8a2b2bb8; font-size: 15px; }
+.pedals button.on { filter: brightness(1.6); border-color: #fff; }
+@media (max-width: 600px) {
+  .countdown { font-size: 120px; }
+  .pedals button { width: 58px; height: 58px; }
+  .pedals .gas { height: 72px; }
+  .top h1 { font-size: 34px; }
+}
+/* a phone held sideways: the whole track fits on the screen */
+@media (max-height: 520px) and (orientation: landscape) {
+  .stage { max-width: calc((100vh - 16px) * 1.5); margin: 0 auto; }
+  .countdown { font-size: 120px; }
+  .pedals { position: absolute; left: 0; right: 0; top: 0; height: calc((100vh - 16px)); margin: 0; padding: 0 0 12px; }
+  .pg { gap: 8px; }
+  .pedals button { width: 54px; height: 54px; }
+  .pedals .gas { height: 70px; }
+}

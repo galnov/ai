@@ -250,6 +250,11 @@ and open http://localhost:8000 (opening `docs/index.html` directly as a file doe
 its workflow publishes this folder's `docs/` at `https://<your-user>.github.io/<repository>/car/` (the
 README at the top of the repository explains the one-time setup).
 
+**On phones and tablets:** in "Race the AI", buttons appear next to the track: ◀ ▶ to steer (left thumb),
+Gas and Brake (right thumb), and you can hold several at once. They sit under the track when the phone is
+upright, and on both sides of it when the phone is sideways (then the whole track fits on the screen).
+Drawing a track works with a finger. A computer with a keyboard works as before.
+
 **Checked during development:** a hand-drawn loop becomes the same track in JavaScript and Python (the
 same 284 points, to within 10⁻¹² of a unit), and a drawing with a turn that is too sharp gets the same error
 message. Four cars driven by the same network for 600 steps on two preset tracks stayed on exactly the same

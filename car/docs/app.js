@@ -3,6 +3,7 @@
 //  Draws the world, asks the "server" (backend.js, in this page) to "advance N steps" and receives the state of the cars.
 // =============================================================
 const $ = (id) => document.getElementById(id);
+const TOUCH = matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;   // a phone or a tablet
 const world = $("world"), wctx = world.getContext("2d");
 const brainCv = $("brain"), bctx = brainCv.getContext("2d");
 
@@ -66,6 +67,8 @@ function setMode(mode) {
   $("results").hidden = true;
   $("countdown").hidden = true;
   $("drawError").hidden = true;
+  $("pedals").hidden = !(TOUCH && mode === "race");
+  releasePedals();
   S.race = null;
   if (mode === "race") {
     startCars("race", { n_ai: 1 }, false);   // wait for a click on "Start race"
@@ -133,6 +136,7 @@ function applyState(st) {
 // ---------------------------------------------------------------- race
 async function startRace() {
   $("results").hidden = true;
+  if (TOUCH) $("stage").scrollIntoView({ behavior: "smooth", block: "center" });   // the track and the pedals on the screen
   await startCars("race", { n_ai: 1 }, false);
   S.race = { finished: {}, started: false };
   for (const n of ["3", "2", "1", "GO!"]) {
@@ -168,6 +172,7 @@ function checkRace(st) {
 
 // ---------------------------------------------------------------- drawing the world
 function resize() {
+  if (!S.info) return;                           // not loaded yet (a phone can report a resize very early)
   const dpr = window.devicePixelRatio || 1;
   const [W, H] = S.info.world;
   const cssW = world.clientWidth;
@@ -526,7 +531,25 @@ function onKey(e, down) {
 }
 window.addEventListener("keydown", (e) => onKey(e, true));
 window.addEventListener("keyup", (e) => onKey(e, false));
-window.addEventListener("blur", () => Object.keys(S.keys).forEach((k) => (S.keys[k] = false)));
+window.addEventListener("blur", () => releasePedals());
+
+// ---------------------------------------------------------------- touch screens: hold the buttons next to the track
+// (several fingers at once: e.g. gas with the right thumb while steering with the left)
+function releasePedals() {
+  Object.keys(S.keys).forEach((k) => (S.keys[k] = false));
+  document.querySelectorAll("#pedals button").forEach((b) => b.classList.remove("on"));
+}
+document.querySelectorAll("#pedals button").forEach((b) => {
+  const k = b.dataset.k;
+  const set = (on) => { if (S.mode === "race") S.keys[k] = on; b.classList.toggle("on", on); };
+  b.addEventListener("pointerdown", (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); set(true); });
+  for (const ev of ["pointerup", "pointercancel", "lostpointercapture"]) b.addEventListener(ev, () => set(false));
+  b.addEventListener("contextmenu", (e) => e.preventDefault());
+});
+if (TOUCH) {
+  $("raceHint").textContent = "Hold the buttons next to the track: ◀ ▶ to steer (left thumb), Gas and Brake (right thumb). The white car is yours.";
+  $("drawHint").textContent = $("drawHint").textContent.replace("Drag the mouse", "Drag your finger");
+}
 window.addEventListener("resize", () => { resize(); });
 
 init();

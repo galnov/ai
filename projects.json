@@ -1,6 +1,6 @@
 {
-  "title": "Machines that learn",
-  "subtitle": "Final project in Software Engineering, Artificial Intelligence track. Every project here trains a neural network from scratch - and most of them run right in your browser.",
+  "title": "Machines That Learn",
+  "subtitle": "Final projects in Software Engineering, Artificial Intelligence track. Every project here trains a neural network from scratch - and most of them run right in your browser.",
   "projects": [
     {"folder": "doodle",  "emoji": "✏️", "title": "Guess What I'm Drawing", "kind": "Supervised learning",
      "text": "A convolutional network trained on Google's Quick Draw drawings recognizes 42 things while you draw them. Play against it in a 6-drawing game."},

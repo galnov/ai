@@ -39,7 +39,7 @@
 
       <section class="card" data-show="draw">
         <h2>Draw a track</h2>
-        <p class="hint">Drag the mouse to draw a closed loop on the grass. When you let go, the track is closed and smoothed automatically, and the cars start driving on it.</p>
+        <p class="hint" id="drawHint">Drag the mouse to draw a closed loop on the grass. When you let go, the track is closed and smoothed automatically, and the cars start driving on it.</p>
         <label class="field">Road width <output id="widthOut">95</output>
           <input type="range" id="trackWidth" min="70" max="130" step="5" value="95">
         </label>
@@ -48,7 +48,7 @@
 
       <section class="card" data-show="race">
         <h2>A 3-lap race</h2>
-        <p class="hint">Drive with the arrow keys or W A S D. The white car is yours.</p>
+        <p class="hint" id="raceHint">Drive with the arrow keys or W A S D. The white car is yours.</p>
         <button class="btn primary" id="raceBtn">Start race</button>
       </section>
 
@@ -82,6 +82,12 @@
           <button class="btn primary" id="againBtn">Race again</button>
         </div>
       </div>
+      <!-- driving on a touch screen (phones and tablets, in a race): steer on the left, pedals on the right -->
+      <div class="pedals" id="pedals" hidden>
+        <div class="pg left"><button data-k="left" aria-label="Steer left">◀</button><button data-k="right" aria-label="Steer right">▶</button></div>
+        <div class="pg right"><button data-k="down" class="brake" aria-label="Brake">Brake</button><button data-k="up" class="gas" aria-label="Gas">Gas</button></div>
+      </div>
+
       <div class="controls">
         <button class="btn" id="pauseBtn">Pause</button>
         <button class="btn" id="restartBtn">Restart</button>
