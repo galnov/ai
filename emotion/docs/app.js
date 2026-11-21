@@ -442,7 +442,7 @@ const CH_EMOTIONS = ["happy", "surprise", "angry", "sad", "fear", "neutral"];
 const CH_ROUNDS = 5, CH_ROUND_MS = 5000, CH_PAUSE_MS = 1300;
 
 function startChallenge() {
-  Plays.played("emotion");                             // one more game, for the counter everyone sees
+  window.Plays?.played("emotion");                             // one more game, for the counter everyone sees
   const pool = CH_EMOTIONS.slice().sort(() => Math.random() - 0.5).slice(0, CH_ROUNDS);
   state.challenge = { targets: pool, round: -1, best: 0, scores: [], start: 0, pause: false };
   $("challenge").hidden = false;
@@ -532,4 +532,4 @@ $("stage").addEventListener("drop", (e) => {
 init();
 
 // "Played N times by visitors" under the title (plays.js)
-Plays.badge("emotion", document.querySelector("header h1"));
+window.Plays?.badge("emotion", document.querySelector("header h1"));

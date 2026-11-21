@@ -95,8 +95,7 @@
       document.getElementById("cards").innerHTML = cards.join("");
       // how many times each game was played, by all visitors together (plays.js - the same counters as the games)
       for (const el of document.querySelectorAll(".played")) {
-        Plays.get(el.dataset.game).then((v) => {
-          if (v === null) return;
+        Plays.watch(el.dataset.game, (v) => {
           el.querySelector("b").textContent = `${v.toLocaleString("en-US")} ${v === 1 ? "time" : "times"}`;
           el.hidden = false;
         });

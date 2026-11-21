@@ -228,7 +228,7 @@ async function saveSample() {
 
 // ---------------------------------------------------------------- game
 function startGame() {
-  Plays.played("doodle");                              // one more game, for the counter everyone sees
+  window.Plays?.played("doodle");                              // one more game, for the counter everyone sees
   $("gameStart").hidden = true;
   $("summary").hidden = true;
   const keys = S.cats.map((c) => c.key).sort(() => Math.random() - 0.5).slice(0, GAME_ROUNDS);
@@ -372,4 +372,4 @@ window.addEventListener("keydown", (e) => {
 init();
 
 // "Played N times by visitors" under the title (plays.js)
-Plays.badge("doodle", document.querySelector("header h1"));
+window.Plays?.badge("doodle", document.querySelector("header h1"));

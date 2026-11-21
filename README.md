@@ -79,13 +79,18 @@ together: under each game's title, and on the home page. A game counts once each
 a doodle game, an emotion challenge, a car race, a runner race, a maze flight (watching the AI does not count).
 
 GitHub Pages can't store a number, so the counters are kept by [Abacus](https://abacus.jasoncameron.dev), a
-free counting service with no account (`plays.js` in the top folder and in each game's `docs/`). The
-counters' names come from the site's address (`galnov_github_io_ai`/`maze` and so on), so they start at 0
-and belong to this site. Good to know:
+free counting service with no account. All of it is in one file, `plays.js` at the top of the repository
+(every game loads it as `../plays.js`). The counters' names come from the site's address
+(`galnov_github_io_ai`/`maze` and so on), so they start at 0 and belong to this site. Good to know:
+* The internet is not always reliable, so `plays.js` doesn't give up: every request is tried again a few
+  times, a play that could not be sent is kept in the visitor's browser and sent later (even on their next
+  visit), and the last number seen is shown right away while the current one is on its way
 * Nothing is counted while testing locally (`localhost`), so your tests don't inflate the numbers
-* If the service is down, the games work as usual, without the counter
+* If the service is down, the games work as usual
 * The counters are public: anyone who knows their names could add to them. It's a fun number, not a statistic
 * A counter that isn't used for 6 months is deleted by the service
+* For counters that answer reliably, you can run your own free counter on Cloudflare: see
+  [`counter/README.md`](counter/README.md) (about 10 minutes, then one line to change in `plays.js`)
 
 ### Before every push
 * After training a better network, export it again (the table above)
