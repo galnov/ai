@@ -18,7 +18,7 @@
 //  the site has its own counters. On a local test (localhost, file://) nothing is counted.
 // =====================================================================================
 (function (root) {
-  const API = root.PLAYS_API || "https://abacus.jasoncameron.dev";
+  const API = root.PLAYS_API || "https://plays-counter.galnvk.workers.dev";
   const host = location.hostname;
   const LOCAL = !root.PLAYS_FORCE && (!host || host === "localhost" || host === "127.0.0.1" || host.endsWith(".local") || location.protocol === "file:");
   const TIMEOUT_MS = 8000, TRIES = 4;
