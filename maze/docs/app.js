@@ -110,6 +110,7 @@ function showReady() {
 function launch() {
   if (S.mode !== "fly" || S.phase !== "ready") return;
   $("overlay").innerHTML = "";
+  Plays.played("maze");                                 // one more flight, for the counter everyone sees
   if (TOUCH) { document.querySelector(".stage").scrollIntoView({ behavior: "smooth", block: "start" }); setThrottle(S.throttle); }
   S.phase = "countdown"; S.phaseT = 0;
 }
@@ -472,3 +473,6 @@ $("rooms").onchange = (e) => { S.rooms = +e.target.value; e.target.blur(); newMa
 $("newMaze").onclick = () => newMaze();
 
 init();
+
+// "Played N times by visitors" under the title (plays.js)
+Plays.badge("maze", document.querySelector("header h1"));

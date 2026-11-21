@@ -53,6 +53,7 @@ async function loadInfo() {
 
 // ---------------------------------------------------------------- starting and ending runs
 async function startRun() {
+  if (S.mode === "race") Plays.played("runner");       // one more race, for the counter everyone sees
   if (TOUCH) document.querySelector(".stage").scrollIntoView({ behavior: "smooth", block: "start" });   // the picture and the buttons on the screen
   S.seed = Math.floor(Math.random() * 2 ** 31);
   S.me = S.mode === "race" ? new Game(S.seed) : null;
@@ -480,3 +481,6 @@ $("record").onchange = () => localStorage.setItem("runner.record", $("record").c
 S.seed = 12345; S.ghost = new Game(S.seed); S.snap.ghost = snapshot(S.ghost); S.focus = "ghost";
 loadInfo();
 requestAnimationFrame(frame);
+
+// "Played N times by visitors" under the title (plays.js)
+Plays.badge("runner", document.querySelector("header h1"));

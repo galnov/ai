@@ -1,6 +1,6 @@
-# Machines that learn
+# Machines That Learn
 
-Final project in Software Engineering, Artificial Intelligence track: a collection of projects that each
+Final projects in Software Engineering, Artificial Intelligence track: a collection of projects that each
 train a neural network from scratch. Every project lives in its own folder, with its own README.
 
 | Folder | Project | How it learns |
@@ -72,6 +72,20 @@ the project's folder, after training, and push:
 
 Training on Colab? The last cell of every project's notebook runs the export and downloads `docs_model.zip`:
 extract it into the project's folder.
+
+### The "Played N times" counters
+The five games (doodle, emotion, car, runner, maze) show how many times they were played by all visitors
+together: under each game's title, and on the home page. A game counts once each time someone starts it:
+a doodle game, an emotion challenge, a car race, a runner race, a maze flight (watching the AI does not count).
+
+GitHub Pages can't store a number, so the counters are kept by [Abacus](https://abacus.jasoncameron.dev), a
+free counting service with no account (`plays.js` in the top folder and in each game's `docs/`). The
+counters' names come from the site's address (`galnov_github_io_ai`/`maze` and so on), so they start at 0
+and belong to this site. Good to know:
+* Nothing is counted while testing locally (`localhost`), so your tests don't inflate the numbers
+* If the service is down, the games work as usual, without the counter
+* The counters are public: anyone who knows their names could add to them. It's a fun number, not a statistic
+* A counter that isn't used for 6 months is deleted by the service
 
 ### Before every push
 * After training a better network, export it again (the table above)

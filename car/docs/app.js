@@ -135,6 +135,7 @@ function applyState(st) {
 
 // ---------------------------------------------------------------- race
 async function startRace() {
+  Plays.played("car");                                 // one more race, for the counter everyone sees
   $("results").hidden = true;
   if (TOUCH) $("stage").scrollIntoView({ behavior: "smooth", block: "center" });   // the track and the pedals on the screen
   await startCars("race", { n_ai: 1 }, false);
@@ -553,3 +554,6 @@ if (TOUCH) {
 window.addEventListener("resize", () => { resize(); });
 
 init();
+
+// "Played N times by visitors" under the title (plays.js)
+Plays.badge("car", document.querySelector("header h1"));
