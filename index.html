@@ -83,7 +83,7 @@
         .map((p) => {
           const live = !status || status.web.includes(p.folder);
           const code = repo ? `<a class="code" href="${repo}/tree/main/${encodeURIComponent(p.folder)}">The code</a>` : "";
-          return `<article class="card ${live ? "" : "soon"}">
+          return `<article class="card ${live ? "" : "soon"}" data-folder="${esc(p.folder)}">
             <div class="top"><span class="emoji" aria-hidden="true">${esc(p.emoji)}</span>
               <span class="kind" style="background:${color(p.kind)}">${esc(p.kind)}</span></div>
             <h2>${esc(p.title)}</h2>
@@ -94,12 +94,24 @@
         });
       document.getElementById("cards").innerHTML = cards.join("");
       // how many times each game was played, by all visitors together (plays.js - the same counters as the games)
+      const plays = {};
       for (const el of document.querySelectorAll(".played")) {
         Plays.watch(el.dataset.game, (v) => {
           el.querySelector("b").textContent = `${v.toLocaleString("en-US")} ${v === 1 ? "time" : "times"}`;
           el.hidden = false;
+          plays[el.dataset.game] = v;
+          sortCards(plays);
         });
       }
+    }
+
+    // the most played games first; then the projects without a game, and the ones coming soon, in their usual order
+    function sortCards(plays) {
+      const cards = [...document.querySelectorAll("#cards .card")];
+      const group = (c) => (c.classList.contains("soon") ? 2 : c.dataset.folder in plays ? 0 : 1);
+      const ranked = cards.map((c, i) => ({ c, i })).sort((a, b) =>
+        group(a.c) - group(b.c) || (plays[b.c.dataset.folder] || 0) - (plays[a.c.dataset.folder] || 0) || a.i - b.i);
+      ranked.forEach(({ c }, k) => (c.style.order = k));          // the grid shows the cards in this order
     }
     main();
   </script>
