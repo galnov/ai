@@ -131,7 +131,9 @@ select { font: 15px var(--body); color: var(--ink); border: 2px solid var(--ink)
 .timer-fill { height: 100%; width: 100%; background: var(--ink); }
 .timer-fill.low { background: var(--no); }
 
-.overlay { position: fixed; inset: 0; background: rgba(31, 45, 92, 0.45); display: grid; place-items: center; z-index: 10; padding: 16px; }
+.overlay { position: fixed; inset: 0; background: rgba(31, 45, 92, 0.45); display: grid; place-items: start center; z-index: 10; padding: 16px;
+           overflow-y: auto; overscroll-behavior: contain; }
+.overlay > * { margin: auto 0; }      /* centered when it fits, scrolls from the top when it doesn't */
 .summary-card {
   background: var(--paper); border: 2px solid var(--ink); border-radius: 18px; box-shadow: 8px 8px 0 var(--ink);
   padding: 22px 26px; max-width: 760px; width: 100%; text-align: center;
@@ -170,6 +172,16 @@ select { font: 15px var(--body); color: var(--ink); border: 2px solid var(--ink)
   .top { padding: 12px 14px 0; gap: 10px; }
   .top h1 { font-size: 46px; }
   .summary-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .summary-card { padding: 16px 14px; box-shadow: 5px 5px 0 var(--ink); }
+  .summary-card h2 { font-size: 34px; margin-bottom: 10px; }
+  .summary-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+  .shot { padding: 4px; border-radius: 10px; }
+  .shot .what { font-size: 17px; }
+  .shot .what .em, .shot .what span { font-size: inherit; }
+  .shot .res { font-size: 11px; line-height: 1.3; }
+  .summary-actions { flex-wrap: wrap; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

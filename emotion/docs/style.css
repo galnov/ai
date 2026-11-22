@@ -187,7 +187,10 @@ body {
   .topbar { flex-direction: column; align-items: flex-start; gap: 10px; }
   .brand h1 { font-size: 30px; }
   .status { white-space: normal; font-size: 14px; }
-  .stage { max-height: 70vh; }
+  .stage { aspect-ratio: 3 / 4; max-height: 70vh; }
+  .empty { padding: 12px; }
+  .empty-face { font-size: 64px; }
+  .empty p { font-size: 17px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
