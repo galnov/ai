@@ -1,0 +1,124 @@
+:root {
+  --bg: #dfe6e3;          /* pale sage: a lab bench, not an arcade */
+  --ink: #17302d;
+  --muted: #557069;
+  --panel: #f2f6f4;
+  --line: #c3d0cb;
+  --screen: #0d2b29;      /* the boards: deep teal glass */
+  --you: #e05a3f;
+  --ai: #2f7fd1;
+  --focus: #e8a317;
+  font-family: ui-rounded, "SF Pro Rounded", "Nunito", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); line-height: 1.5; min-height: 100vh; }
+
+.top {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
+  max-width: 1180px; margin: 0 auto; padding: 22px 20px 14px;
+}
+.top h1 { margin: 0; font-size: 2.1rem; line-height: 1.05; letter-spacing: -0.02em; font-weight: 800; }
+.top p { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
+.top .plays { margin-top: 4px; }
+
+.modes { display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 4px; flex: none; }
+.modes button {
+  border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 700;
+  padding: 8px 16px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+}
+.modes button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+
+.banner { max-width: 1140px; margin: 0 auto 12px; padding: 10px 14px; border-radius: 10px;
+  background: #fbefd2; color: #6b4b06; border: 1px solid #ecd38f; }
+
+.layout {
+  display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 20px; align-items: start;
+  max-width: 1180px; margin: 0 auto; padding: 0 20px 32px;
+}
+
+.arena { position: relative; touch-action: none; user-select: none; -webkit-user-select: none; }
+.boards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.arena.watch .boards { grid-template-columns: minmax(0, 560px); justify-content: center; }
+.arena.watch .board.you { display: none; }
+
+.board { margin: 0; }
+.board figcaption {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  padding: 0 4px 6px; font-size: 0.95rem;
+}
+.board figcaption b { font-size: 1.05rem; }
+.board.you figcaption b { color: var(--you); }
+.board.ai figcaption b { color: var(--ai); }
+.stats { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; display: flex; gap: 10px; }
+.screen {
+  aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: var(--screen);
+  box-shadow: inset 0 0 0 3px #0a1f1e, 0 10px 30px rgba(23, 48, 45, 0.18);
+}
+.board.you .screen { cursor: none; }
+.screen canvas { width: 100%; height: 100%; display: block; }
+
+.overlay {
+  position: absolute; inset: 0; display: none; place-items: center; padding: 16px;
+  background: rgba(223, 230, 227, 0.72); border-radius: 14px; z-index: 2;
+}
+.overlay.on { display: grid; }
+.card {
+  background: #fff; border-radius: 16px; padding: 22px 24px; max-width: 360px; width: 100%; text-align: center;
+  box-shadow: 0 20px 50px rgba(23, 48, 45, 0.25);
+}
+.card h2 { margin: 0 0 6px; font-size: 1.55rem; }
+.card p { margin: 0 0 16px; color: var(--muted); }
+.card .final { font-size: 2.3rem; font-weight: 800; font-variant-numeric: tabular-nums; margin: 2px 0 10px; }
+.card .final .y { color: var(--you); }
+.card .final .a { color: var(--ai); }
+
+.side { display: flex; flex-direction: column; gap: 14px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+.panel h2 { margin: 0 0 10px; font-size: 1.05rem; }
+.about p { margin: 0 0 10px; font-size: 0.93rem; }
+.about p:last-child { margin-bottom: 0; }
+.small { font-size: 0.85rem !important; color: var(--muted); }
+
+.field { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: var(--muted); margin-bottom: 12px; }
+select { font: inherit; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; width: 100%; }
+.row { display: flex; gap: 8px; }
+.btn { font: inherit; font-weight: 700; border-radius: 10px; padding: 9px 14px; cursor: pointer; background: #fff; color: var(--ink); border: 1px solid var(--line); }
+.btn.primary { background: var(--ink); border-color: var(--ink); color: #fff; flex: 1; }
+.card .btn.primary { width: 100%; }
+.btn.icon { padding: 9px 11px; }
+.btn[aria-pressed="false"].icon { opacity: 0.5; }
+.btn:focus-visible, select:focus-visible, .modes button:focus-visible, input:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.hint { margin: 12px 0 0; color: var(--muted); font-size: 0.88rem; }
+
+.frames { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.frames figure { margin: 0; position: relative; }
+.frames canvas { width: 100%; aspect-ratio: 1; display: block; image-rendering: pixelated; border-radius: 6px; background: #000; }
+.frames .cam { position: absolute; left: 0; top: 0; image-rendering: auto; background: transparent; mix-blend-mode: screen; }
+.frames figcaption { font-size: 0.78rem; color: var(--muted); margin-top: 4px; line-height: 1.3; }
+.probs { margin-top: 12px; display: grid; gap: 6px; }
+.probs div { display: grid; grid-template-columns: 3.2em 1fr; align-items: center; gap: 8px; font-size: 0.85rem; }
+.probs i { display: block; height: 10px; background: #dbe4e0; border-radius: 99px; overflow: hidden; }
+.probs b { display: block; height: 100%; width: 0; background: var(--ai); border-radius: 99px; transition: width 0.1s linear; }
+.check { display: flex; gap: 8px; align-items: center; margin-top: 12px; font-size: 0.85rem; color: var(--muted); }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .side { display: grid; grid-template-columns: 1fr 1fr; }
+  .about { grid-column: 1 / -1; }
+}
+@media (max-width: 600px) {
+  .top { flex-direction: column; align-items: stretch; padding: 14px 12px 10px; gap: 10px; }
+  .top h1 { font-size: 1.65rem; }
+  .top p { font-size: 0.92rem; }
+  .modes button { flex: 1; }
+  .layout { padding: 0 10px 24px; gap: 14px; }
+  .boards { gap: 8px; }
+  .board figcaption { flex-direction: column; gap: 0; font-size: 0.85rem; padding-bottom: 4px; }
+  .screen { border-radius: 10px; }
+  .side { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { .probs b { transition: none; } }

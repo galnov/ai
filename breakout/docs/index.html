@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Pixel Breakout AI | a network that learned to play from the screen's pixels</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧱</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="title">
+      <h1>Pixel Breakout AI</h1>
+      <p>A convolutional network that learned Breakout from nothing but the screen's pixels and the score, like DeepMind's Atari player.</p>
+    </div>
+    <nav class="modes" id="modes" aria-label="Mode">
+      <button data-mode="race" aria-pressed="true">Race the AI</button>
+      <button data-mode="watch" aria-pressed="false">Watch the AI</button>
+    </nav>
+  </header>
+  <div class="banner" id="banner" hidden></div>
+
+  <main class="layout">
+    <section class="arena" id="arena">
+      <div class="boards" id="boards">
+        <figure class="board you" id="youBox">
+          <figcaption><b>You</b><span class="stats"><span id="youScore">0 bricks</span> <span id="youLives">●●●</span></span></figcaption>
+          <div class="screen"><canvas id="youCanvas" aria-label="Your board"></canvas></div>
+        </figure>
+        <figure class="board ai">
+          <figcaption><b id="aiName">AI</b><span class="stats"><span id="aiScore">0 bricks</span> <span id="aiLives">●●●</span></span></figcaption>
+          <div class="screen"><canvas id="aiCanvas" aria-label="The AI's board"></canvas></div>
+        </figure>
+      </div>
+      <div class="overlay" id="overlay"></div>
+    </section>
+
+    <aside class="side">
+      <section class="panel">
+        <label class="field">AI player <select id="stage"></select></label>
+        <div class="row">
+          <button class="btn primary" id="restart">New game</button>
+          <button class="btn" id="pause" aria-pressed="false">Pause</button>
+          <button class="btn icon" id="sound" aria-pressed="true" aria-label="Sound">🔊</button>
+        </div>
+        <p class="hint" id="hint">Move your paddle with the mouse, your finger or the arrow keys. Same bricks, same serves: whoever breaks more bricks with 3 balls wins.</p>
+      </section>
+
+      <section class="panel sees">
+        <h2>What the AI sees</h2>
+        <div class="frames">
+          <figure><canvas id="f0" width="48" height="48"></canvas><figcaption>previous screen</figcaption></figure>
+          <figure><canvas id="f1" width="48" height="48"></canvas><canvas id="cam" class="cam" width="48" height="48"></canvas><figcaption>current screen + where it looks</figcaption></figure>
+        </div>
+        <div class="probs" id="probs">
+          <div><span>left</span><i><b id="pLeft"></b></i></div>
+          <div><span>stay</span><i><b id="pStay"></b></i></div>
+          <div><span>right</span><i><b id="pRight"></b></i></div>
+        </div>
+        <label class="check"><input type="checkbox" id="showCam" checked> Show where it looks (Grad-CAM)</label>
+      </section>
+
+      <section class="panel about">
+        <h2>How it learned</h2>
+        <p>The network gets two gray screens of 48 × 48 pixels, the one before and the one now, and chooses: left, stay or right. Nobody told it what a ball or a paddle is. It only gets +1 for a brick and −1 for a lost ball.</p>
+        <p>Two convolutional layers learn to find the shapes on the screen, and comparing two screens tells it which way the ball moves. It learned with PPO, playing 64 games at a time for millions of moves.</p>
+        <p class="small">Pick an early learning stage to see how it played before it understood the game.</p>
+      </section>
+    </aside>
+  </main>
+
+  <script src="game.js"></script>
+  <script src="cnn.js"></script>
+  <script src="../plays.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

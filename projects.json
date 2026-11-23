@@ -63,6 +63,14 @@
       "kind": "Reinforcement learning (self-play)",
       "text": "Play 3D air hockey against a network that learned the game by playing millions of points against itself.",
       "game": true
+    },
+    {
+      "folder": "breakout",
+      "emoji": "🧱",
+      "title": "Pixel Breakout AI",
+      "kind": "Reinforcement learning from pixels (CNN + PPO)",
+      "text": "Race a convolutional network at Breakout. It learned the game from nothing but the screen's pixels and the score.",
+      "game": true
     }
   ]
 }

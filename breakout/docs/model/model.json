@@ -1,0 +1,177 @@
+{
+ "networks": [
+  {
+   "id": "steps_00204800",
+   "label": "Beginner (after 0.2M moves)",
+   "steps": 204800,
+   "layers": [
+    {
+     "type": "conv",
+     "in": 2,
+     "out": 16,
+     "k": 6,
+     "stride": 3,
+     "w": 0,
+     "b": 1152
+    },
+    {
+     "type": "conv",
+     "in": 16,
+     "out": 32,
+     "k": 3,
+     "stride": 2,
+     "w": 1168,
+     "b": 5776
+    },
+    {
+     "type": "dense",
+     "in": 1568,
+     "out": 256,
+     "act": "relu",
+     "w": 5808,
+     "b": 407216
+    },
+    {
+     "type": "dense",
+     "in": 256,
+     "out": 3,
+     "act": "none",
+     "w": 407472,
+     "b": 408240
+    }
+   ]
+  },
+  {
+   "id": "steps_01007616",
+   "label": "Learner (after 1.0M moves)",
+   "steps": 1007616,
+   "layers": [
+    {
+     "type": "conv",
+     "in": 2,
+     "out": 16,
+     "k": 6,
+     "stride": 3,
+     "w": 408243,
+     "b": 409395
+    },
+    {
+     "type": "conv",
+     "in": 16,
+     "out": 32,
+     "k": 3,
+     "stride": 2,
+     "w": 409411,
+     "b": 414019
+    },
+    {
+     "type": "dense",
+     "in": 1568,
+     "out": 256,
+     "act": "relu",
+     "w": 414051,
+     "b": 815459
+    },
+    {
+     "type": "dense",
+     "in": 256,
+     "out": 3,
+     "act": "none",
+     "w": 815715,
+     "b": 816483
+    }
+   ]
+  },
+  {
+   "id": "steps_03006464",
+   "label": "Improving (after 3.0M moves)",
+   "steps": 3006464,
+   "layers": [
+    {
+     "type": "conv",
+     "in": 2,
+     "out": 16,
+     "k": 6,
+     "stride": 3,
+     "w": 816486,
+     "b": 817638
+    },
+    {
+     "type": "conv",
+     "in": 16,
+     "out": 32,
+     "k": 3,
+     "stride": 2,
+     "w": 817654,
+     "b": 822262
+    },
+    {
+     "type": "dense",
+     "in": 1568,
+     "out": 256,
+     "act": "relu",
+     "w": 822294,
+     "b": 1223702
+    },
+    {
+     "type": "dense",
+     "in": 256,
+     "out": 3,
+     "act": "none",
+     "w": 1223958,
+     "b": 1224726
+    }
+   ]
+  },
+  {
+   "id": "final",
+   "label": "Fully trained",
+   "steps": 4915200,
+   "layers": [
+    {
+     "type": "conv",
+     "in": 2,
+     "out": 16,
+     "k": 6,
+     "stride": 3,
+     "w": 1224729,
+     "b": 1225881
+    },
+    {
+     "type": "conv",
+     "in": 16,
+     "out": 32,
+     "k": 3,
+     "stride": 2,
+     "w": 1225897,
+     "b": 1230505
+    },
+    {
+     "type": "dense",
+     "in": 1568,
+     "out": 256,
+     "act": "relu",
+     "w": 1230537,
+     "b": 1631945
+    },
+    {
+     "type": "dense",
+     "in": 256,
+     "out": 3,
+     "act": "none",
+     "w": 1632201,
+     "b": 1632969
+    }
+   ]
+  }
+ ],
+ "n_weights": 1632972,
+ "dtype": "f16",
+ "screen": 48,
+ "frames": 2,
+ "actions": [
+  "stay",
+  "left",
+  "right"
+ ]
+}
