@@ -23,8 +23,8 @@ Every project that has a `docs/` folder gets a web page that runs its trained ne
 browser, plus a home page that lists all the projects:
 
 ```
-https://<your-user>.github.io/<repository>/            the home page
-https://<your-user>.github.io/<repository>/doodle/     a project's page
+https://galnov.github.io/ai/            the home page
+https://galnov.github.io/ai/doodle/     a project's page
 ```
 
 The workflow `.github/workflows/pages.yml` builds the site on every push: it copies `index.html`,
