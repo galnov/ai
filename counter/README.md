@@ -1,11 +1,9 @@
 # Your own counter (optional)
 
-The "Played N times" counters use Abacus, a free counting service that anyone can use. It works most of
-the time, but it is shared by many websites, and it allows only 30 requests per 10 seconds from one
-internet address - a whole class at school playing at the same time shares one address. `plays.js` keeps
-trying and remembers plays that could not be sent, so they are not lost, but they may show up late.
-
-If you want counters that answer reliably, run your own: a **Cloudflare Worker** (a small program on
+The "Played N times" counters started out on Abacus, a free counting service that anyone can use. It was
+not reliable enough (it is shared by many websites, often answered "Try again later", and allows only 30
+requests per 10 seconds from one internet address - a whole class at school shares one address). So the
+site now uses its own counter, set up as described here: a **Cloudflare Worker** (a small program on
 Cloudflare's servers) with a **D1 database** (where the numbers are kept). It's free (the free plan
 allows 100,000 requests a day), takes about 10 minutes in the browser, and needs no programs on your computer.
 
@@ -14,7 +12,9 @@ allows 100,000 requests a day), takes about 10 minutes in the browser, and needs
 | `worker.js` | the Worker: `/hit/<namespace>/<game>` adds 1, `/get/<namespace>/<game>` reads (the same addresses as Abacus) |
 | `schema.sql` | the database table: one row per game |
 
-The Worker only accepts your site's namespace and the five games, so nobody can use it for other counters.
+The Worker only accepts your site's namespace and the games in its `GAMES` list (doodle, emotion, car,
+runner, maze, hockey, breakout), so nobody can use it for other counters. When you add a game, add its folder
+name to `GAMES` and deploy again.
 Adding 1 is a single database statement, so two players finishing at the same moment can't lose a play.
 
 ## Setup (in the browser)
@@ -32,7 +32,8 @@ Adding 1 is a single database statement, so two players finishing at the same mo
 6. **Check it:** open `https://plays-counter.<your-subdomain>.workers.dev/hit/galnov_github_io_ai/maze` in
    the browser (the address is shown on the Worker's page). It should show `{"value":1}`, and `2` when you
    reload. (Those were test plays: in the D1 console, `UPDATE plays SET n = 0 WHERE game = 'maze';` resets it.)
-7. **Use it:** in `plays.js` at the top of the repository, change the line
+7. **Use it** (already done for this site - `plays.js` points to `plays-counter.galnvk.workers.dev`): in
+   `plays.js` at the top of the repository, change the line
    ```js
    const API = root.PLAYS_API || "https://abacus.jasoncameron.dev";
    ```

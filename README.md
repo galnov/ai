@@ -12,6 +12,8 @@ train a neural network from scratch. Every project lives in its own folder, with
 | [`drone/`](drone/) | A Drone That Learned to Fly: two propellers, wind and packages (PPO) | reinforcement learning |
 | [`runner/`](runner/) | Runner AI: race networks in a 3D endless runner | imitation + reinforcement |
 | [`maze/`](maze/) | Maze Pilot: a spaceship flies through narrow 3D mazes (PPO) | reinforcement learning |
+| [`hockey/`](hockey/) | Air Hockey AI: play 3D air hockey against a network that learned by playing itself (PPO + self-play) | reinforcement learning |
+| [`breakout/`](breakout/) | Pixel Breakout AI: race a CNN that learned Breakout from the screen's pixels alone (PPO) | reinforcement learning |
 
 ---
 
@@ -25,8 +27,8 @@ https://<your-user>.github.io/<repository>/            the home page
 https://<your-user>.github.io/<repository>/doodle/     a project's page
 ```
 
-The workflow `.github/workflows/pages.yml` builds the site on every push: it copies `index.html` and
-`projects.json`, and the `docs/` folder of every project, into one site and publishes it.
+The workflow `.github/workflows/pages.yml` builds the site on every push: it copies `index.html`,
+`projects.json` and `plays.js`, and the `docs/` folder of every project, into one site and publishes it.
 
 ### Setting it up (once)
 1. Create a **public** repository on GitHub (for example `ai-projects`), empty - no README, no .gitignore
@@ -48,11 +50,15 @@ The workflow `.github/workflows/pages.yml` builds the site on every push: it cop
 ### Adding a project
 1. Copy the project folder into this repository, next to the others (for example `chess/`)
 2. If it has a web version, export its network into its `docs/` folder (see that project's README)
-3. Check that its entry in `projects.json` uses the same folder name, and edit the texts if you like
-4. `git add .`, `git commit -m "Add chess"`, `git push` - the site updates by itself
+3. Check that its entry in `projects.json` uses the same folder name, and edit the texts if you like. A game
+   gets `"game": true`, so the home page shows its play counter
+4. If it is a game with a counter, add its folder name to `GAMES` in the Cloudflare Worker (see the counters
+   below), or its plays won't be saved
+5. `git add .`, `git commit -m "Add chess"`, `git push` - the site updates by itself
 
 The home page shows only the projects whose folders are in the repository: with an **Open** button if the
-project has a web page, and "web version coming soon" if it doesn't yet.
+project has a web page, and "web version coming soon" if it doesn't yet. The games come first, sorted by how
+many times they were played, then the other projects.
 
 ### Putting the trained networks on the pages
 GitHub Pages can't run Python, so every project's page runs its network in the browser, in JavaScript. A page
@@ -69,28 +75,32 @@ the project's folder, after training, and push:
 | `drone/` | `python -m src.export_web` | `docs/model/` |
 | `runner/` | `python -m src.export_web` | `docs/model/` (the networks that exist: combo, DQN, imitation) |
 | `maze/` | `python -m src.export_web` | `docs/model/` |
+| `hockey/` | `python -m src.export_web` | `docs/model/` (the final network and the learning stages) |
+| `breakout/` | `python -m src.export_web` | `docs/model/` (the final network and the learning stages) |
 
 Training on Colab? The last cell of every project's notebook runs the export and downloads `docs_model.zip`:
-extract it into the project's folder.
+extract it into the project's folder. (Hockey and Breakout already include networks trained with a NumPy
+copy of their training code; running their notebooks replaces them with networks trained by the PyTorch code.)
 
 ### The "Played N times" counters
-The five games (doodle, emotion, car, runner, maze) show how many times they were played by all visitors
-together: under each game's title, and on the home page. A game counts once each time someone starts it:
-a doodle game, an emotion challenge, a car race, a runner race, a maze flight (watching the AI does not count).
+The seven games (doodle, emotion, car, runner, maze, hockey, breakout) show how many times they were played
+by all visitors together: under each game's title, and on the home page. A game counts once each time someone
+starts it: a doodle game, an emotion challenge, a car race, a runner race, a maze flight, a hockey match, a
+Breakout race (watching the AI does not count).
 
-GitHub Pages can't store a number, so the counters are kept by [Abacus](https://abacus.jasoncameron.dev), a
-free counting service with no account. All of it is in one file, `plays.js` at the top of the repository
-(every game loads it as `../plays.js`). The counters' names come from the site's address
-(`galnov_github_io_ai`/`maze` and so on), so they start at 0 and belong to this site. Good to know:
+GitHub Pages can't store a number, so the counters are kept by a small counter of our own on Cloudflare (a
+Worker with a D1 database, free): see [`counter/README.md`](counter/README.md). The page side is one file,
+`plays.js` at the top of the repository (every game loads it as `../plays.js`). The counters' names come from
+the site's address (`galnov_github_io_ai`/`maze` and so on). Good to know:
 * The internet is not always reliable, so `plays.js` doesn't give up: every request is tried again a few
   times, a play that could not be sent is kept in the visitor's browser and sent later (even on their next
   visit), and the last number seen is shown right away while the current one is on its way
 * Nothing is counted while testing locally (`localhost`), so your tests don't inflate the numbers
 * If the service is down, the games work as usual
-* The counters are public: anyone who knows their names could add to them. It's a fun number, not a statistic
-* A counter that isn't used for 6 months is deleted by the service
-* For counters that answer reliably, you can run your own free counter on Cloudflare: see
-  [`counter/README.md`](counter/README.md) (about 10 minutes, then one line to change in `plays.js`)
+* The Worker only accepts this site's namespace and the games in its `GAMES` list. **A new game must be
+  added there** (Cloudflare dashboard → the Worker → Edit code → the `GAMES` line → Deploy). Until then its
+  counter answers "Unknown counter" and its badge doesn't appear
+* The counters are public: anyone could add to them. It's a fun number, not a statistic
 
 ### Before every push
 * After training a better network, export it again (the table above)
@@ -99,3 +109,4 @@ free counting service with no account. All of it is in one file, `plays.js` at t
   images can be made again at any time with `python -m src.make_camera_data`). The runner's recordings
   (`runner/data/recordings/`) are small, and they are uploaded: they are that project's training data
 * Try a project's page locally: `python -m http.server 8000 --directory maze/docs`, then open http://localhost:8000
+  (the play counter doesn't load this way, and nothing is counted - the game works as usual)
