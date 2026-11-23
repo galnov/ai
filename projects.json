@@ -55,6 +55,14 @@
       "kind": "Reinforcement learning",
       "text": "A spaceship teaches itself to fly through narrow 3D mazes, seen from the cockpit.",
       "game": true
+    },
+    {
+      "folder": "hockey",
+      "emoji": "🏒",
+      "title": "Air Hockey AI",
+      "kind": "Reinforcement learning (self-play)",
+      "text": "Play 3D air hockey against a network that learned the game by playing millions of points against itself.",
+      "game": true
     }
   ]
 }

@@ -1,0 +1,143 @@
+:root {
+  --hall: #17233a;        /* the arcade hall behind the table */
+  --hall-2: #1f2e4a;
+  --ice: #eef4f7;         /* the table surface */
+  --ink: #e9eef5;
+  --muted: #9fb0c8;
+  --red: #e63946;         /* you */
+  --blue: #2b8ef0;        /* the AI */
+  --amber: #ffb703;       /* the puck, highlights */
+  --line: #33456a;
+  font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: radial-gradient(120% 80% at 50% 0%, var(--hall-2), var(--hall) 60%);
+  color: var(--ink);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+.top {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
+  max-width: 1180px; margin: 0 auto; padding: 22px 20px 12px;
+}
+.top h1 { margin: 0; font-size: 2rem; letter-spacing: -0.01em; line-height: 1.1; }
+.top p { margin: 4px 0 0; color: var(--muted); max-width: 60ch; }
+.top .plays { margin-top: 4px; }
+
+.modes { display: flex; background: #0f1828; border: 1px solid var(--line); border-radius: 999px; padding: 4px; flex: none; }
+.modes button {
+  border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 600;
+  padding: 8px 16px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+}
+.modes button[aria-pressed="true"] { background: var(--ink); color: var(--hall); }
+
+.banner { max-width: 1140px; margin: 0 auto 10px; padding: 10px 14px; border-radius: 10px;
+  background: #3a2f12; color: #ffe3a3; border: 1px solid #6b5420; }
+
+.layout {
+  display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px;
+  max-width: 1180px; margin: 0 auto; padding: 0 20px 32px;
+}
+
+.stage {
+  position: relative; border-radius: 18px; overflow: hidden;
+  background: radial-gradient(90% 70% at 50% 35%, #26395c, #121b2d);
+  height: min(78vh, 760px); min-height: 420px;
+  touch-action: none; user-select: none; -webkit-user-select: none;
+  cursor: none;
+}
+.stage.watching { cursor: default; }
+#view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.board {
+  position: absolute; left: 50%; top: 12px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 14px;
+  background: rgba(10, 16, 28, 0.82); border: 1px solid var(--line); border-radius: 14px; padding: 6px 14px;
+  pointer-events: none;
+}
+.board .side { display: flex; align-items: baseline; gap: 8px; }
+.board .side b { font-size: 1.7rem; font-variant-numeric: tabular-nums; line-height: 1; min-width: 1.2ch; text-align: center; }
+.board .side small { color: var(--muted); font-size: 0.8rem; max-width: 12ch; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.board .you b { color: var(--red); }
+.board .ai b { color: var(--blue); }
+.board .ai { flex-direction: row-reverse; }
+.board .to { color: var(--muted); font-size: 0.75rem; white-space: nowrap; }
+
+.flash {
+  position: absolute; left: 0; right: 0; top: 40%; margin: 0; text-align: center;
+  font-size: clamp(2rem, 7vw, 4rem); font-weight: 800; letter-spacing: -0.02em;
+  pointer-events: none; opacity: 0; transition: opacity 0.2s;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+.flash.on { opacity: 1; }
+
+.overlay {
+  position: absolute; inset: 0; display: none; place-items: center; padding: 20px;
+  background: rgba(10, 16, 28, 0.72); cursor: default; overflow-y: auto;
+}
+.overlay.on { display: grid; }
+.card {
+  background: #fff; color: #1a2336; border-radius: 16px; padding: 22px 24px; max-width: 360px; width: 100%;
+  text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+.card h2 { margin: 0 0 6px; font-size: 1.6rem; }
+.card p { margin: 0 0 16px; color: #4a5872; }
+.card .final { font-size: 2.6rem; font-weight: 800; font-variant-numeric: tabular-nums; margin: 4px 0 10px; }
+.card .final .r { color: var(--red); }
+.card .final .b { color: var(--blue); }
+
+.side-panel { display: flex; flex-direction: column; gap: 16px; }
+.panel { background: rgba(15, 24, 40, 0.75); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+.panel h2 { margin: 0 0 8px; font-size: 1.05rem; }
+.about p { margin: 0 0 10px; color: #c9d4e4; font-size: 0.93rem; }
+.about p:last-child { margin-bottom: 0; }
+.small { font-size: 0.85rem !important; color: var(--muted) !important; }
+
+.field { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: var(--muted); margin-bottom: 12px; }
+select {
+  font: inherit; font-size: 0.95rem; color: var(--ink); background: #0f1828; border: 1px solid var(--line);
+  border-radius: 10px; padding: 9px 10px; width: 100%;
+}
+.row { display: flex; gap: 8px; }
+.btn {
+  font: inherit; font-weight: 600; border-radius: 10px; padding: 9px 14px; cursor: pointer;
+  background: #0f1828; color: var(--ink); border: 1px solid var(--line);
+}
+.btn.primary { background: var(--red); border-color: var(--red); color: #fff; flex: 1; }
+.card .btn.primary { width: 100%; }
+.btn.icon { padding: 9px 11px; }
+.btn[aria-pressed="false"].icon { opacity: 0.55; }
+.btn:focus-visible, select:focus-visible, .modes button:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+.hint { margin: 12px 0 0; color: var(--muted); font-size: 0.88rem; }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .stage { height: min(72vh, 680px); }
+}
+@media (max-width: 600px) {
+  .top { flex-direction: column; align-items: stretch; padding: 14px 12px 8px; gap: 10px; }
+  .top h1 { font-size: 1.6rem; }
+  .top p { font-size: 0.92rem; }
+  .modes button { flex: 1; }
+  .layout { padding: 0 8px 24px; gap: 12px; }
+  .stage { border-radius: 14px; height: calc(100svh - 150px); min-height: 380px; max-height: 640px; }
+  .board { top: 8px; padding: 4px 10px; gap: 10px; }
+  .board .side b { font-size: 1.4rem; }
+}
+@media (prefers-reduced-motion: reduce) { .flash { transition: none; } }
+/* phones held sideways: a short screen - keep the whole table on screen */
+@media (orientation: landscape) and (max-height: 520px) {
+  .top { padding: 8px 12px 6px; align-items: center; }
+  .top h1 { font-size: 1.3rem; }
+  .top .title > p { display: none; }
+  .modes button { padding: 6px 12px; }
+  .layout { grid-template-columns: minmax(0, 1fr) 260px; padding: 0 10px 16px; gap: 10px; }
+  .stage { height: calc(100svh - 64px); min-height: 240px; }
+  .about { display: none; }
+}

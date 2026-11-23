@@ -7,7 +7,7 @@
 //  other counters. Setup: see README.md in this folder.
 // =====================================================================================
 const NAMESPACE = "galnov_github_io_ai";                  // the site's namespace (see plays.js)
-const GAMES = ["doodle", "emotion", "car", "runner", "maze"];
+const GAMES = ["doodle", "emotion", "car", "runner", "maze", "hockey"];
 
 const HEADERS = {
   "Access-Control-Allow-Origin": "*",                     // the pages on github.io may call it

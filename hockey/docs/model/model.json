@@ -1,0 +1,166 @@
+{
+ "networks": [
+  {
+   "id": "upd_0005",
+   "label": "Beginner (after 0.1M moves)",
+   "steps": 81920,
+   "layers": [
+    {
+     "in": 12,
+     "out": 128,
+     "act": "tanh",
+     "w": 0,
+     "b": 1536
+    },
+    {
+     "in": 128,
+     "out": 128,
+     "act": "tanh",
+     "w": 1664,
+     "b": 18048
+    },
+    {
+     "in": 128,
+     "out": 2,
+     "act": "none",
+     "w": 18176,
+     "b": 18432
+    }
+   ],
+   "norm": {
+    "mean": 18434,
+    "var": 18446
+   }
+  },
+  {
+   "id": "upd_0040",
+   "label": "Rookie (after 0.7M moves)",
+   "steps": 655360,
+   "layers": [
+    {
+     "in": 12,
+     "out": 128,
+     "act": "tanh",
+     "w": 18458,
+     "b": 19994
+    },
+    {
+     "in": 128,
+     "out": 128,
+     "act": "tanh",
+     "w": 20122,
+     "b": 36506
+    },
+    {
+     "in": 128,
+     "out": 2,
+     "act": "none",
+     "w": 36634,
+     "b": 36890
+    }
+   ],
+   "norm": {
+    "mean": 36892,
+    "var": 36904
+   }
+  },
+  {
+   "id": "upd_0150",
+   "label": "Club player (after 2.5M moves)",
+   "steps": 2457600,
+   "layers": [
+    {
+     "in": 12,
+     "out": 128,
+     "act": "tanh",
+     "w": 36916,
+     "b": 38452
+    },
+    {
+     "in": 128,
+     "out": 128,
+     "act": "tanh",
+     "w": 38580,
+     "b": 54964
+    },
+    {
+     "in": 128,
+     "out": 2,
+     "act": "none",
+     "w": 55092,
+     "b": 55348
+    }
+   ],
+   "norm": {
+    "mean": 55350,
+    "var": 55362
+   }
+  },
+  {
+   "id": "upd_0400",
+   "label": "Expert (after 6.6M moves)",
+   "steps": 6553600,
+   "layers": [
+    {
+     "in": 12,
+     "out": 128,
+     "act": "tanh",
+     "w": 55374,
+     "b": 56910
+    },
+    {
+     "in": 128,
+     "out": 128,
+     "act": "tanh",
+     "w": 57038,
+     "b": 73422
+    },
+    {
+     "in": 128,
+     "out": 2,
+     "act": "none",
+     "w": 73550,
+     "b": 73806
+    }
+   ],
+   "norm": {
+    "mean": 73808,
+    "var": 73820
+   }
+  },
+  {
+   "id": "final",
+   "label": "Champion: fully trained",
+   "steps": 9420800,
+   "layers": [
+    {
+     "in": 12,
+     "out": 128,
+     "act": "tanh",
+     "w": 73832,
+     "b": 75368
+    },
+    {
+     "in": 128,
+     "out": 128,
+     "act": "tanh",
+     "w": 75496,
+     "b": 91880
+    },
+    {
+     "in": 128,
+     "out": 2,
+     "act": "none",
+     "w": 92008,
+     "b": 92264
+    }
+   ],
+   "norm": {
+    "mean": 92266,
+    "var": 92278
+   }
+  }
+ ],
+ "n_weights": 92290,
+ "obs_size": 12
+}
