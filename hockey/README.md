@@ -33,9 +33,9 @@ the center line.
 |---|---|
 | **Agent** | the player: a neural network |
 | **Environment** | a simulation of the table, the puck and both paddles (`src/physics.py`) |
-| **State** (12 numbers) | positions and velocities of its paddle, the opponent's paddle and the puck, seen from its own side |
+| **State** (14 numbers) | positions and velocities of its paddle, the opponent's paddle and the puck, seen from its own side, and the two 7-second clocks |
 | **Action** (2 continuous numbers) | the velocity the paddle tries to reach, x and y, each between -1 and 1 |
-| **Reward** | +10 for scoring, -10 for conceding, +0.6 per meter the puck moves toward the opponent's goal (and -0.6 back), +0.05 for hitting the puck, -3 for both players when nobody scores within 12 s |
+| **Reward** | +10 for scoring, -10 for conceding, +0.6 per meter the puck moves toward the opponent's goal (and -0.6 back), +0.05 for hitting the puck, -3 for breaking the 7-second rule |
 
 ---
 
@@ -86,10 +86,10 @@ To play locally: `python -m http.server 8000 --directory docs` and open http://l
 ### What you see during training
 Every 25 updates there is a line like this one (an example; your numbers will differ):
 ```
-update  300/732 |  4.92M | reward/point   1.35 | vs bot 212:131 (57 replays) | vs first stage 398:2 | bot opponents 41% | std 0.52 |  610 s
+update  300/732 |  4.92M | reward/point   1.35 | vs bot 212:131 (57 no-goal points) | vs first stage 398:2 | bot opponents 41% | std 0.52 |  610 s
 ```
 * **vs bot:** 400 points against the full-speed bot, without exploration noise: goals scored : goals conceded
-* **replays:** points where nobody scored within 12 seconds (the point is replayed)
+* **no-goal points:** a 7-second-rule foul, or a rally of 30 seconds with no goal (replayed - in training only)
 * **vs first stage:** against the network as it was after the first update (almost random)
 * **bot opponents:** the share of training opponents that are the bot (it goes down during training)
 
@@ -123,8 +123,18 @@ without looking. (A first version delayed the player's own paddle too. Then both
 kept overshooting, because they were steering a paddle they saw where it had been. With the change, the
 network's score against the bot rose from about 25% of the goals to about 50% in the same training time.)
 
-**Playing for time doesn't pay:** if nobody scores in 12 seconds, both players get -3 and the point is
-replayed. Without it, a network can learn to only defend.
+**The 7-second rule (as in real air hockey):** a player who keeps the puck in their own half for 7 seconds
+commits a foul: -3 for them, and the opponent gets the puck. Both players see the two clocks (inputs 12-13).
+
+Why it is needed: an earlier version only had a "replay after 12 seconds with no goal" rule, with -3 for both
+players. The network found an easy way out: when a slow puck was in its half, it stood still in front of
+its goal and waited for the replay. Tests found it frozen for 1.5 seconds or more in 1,334 situations in
+2 minutes of play on 200 tables, almost all with a slow puck in its own half. With the 7-second rule waiting
+costs only the waiting player, and it happened 2 times in the same test. The network also became much
+stronger: it now has to attack the puck instead of waiting.
+
+In training a point with no goal and no foul is still replayed after 30 seconds, so every episode ends. The
+web page has no replays: thanks to the 7-second rule the puck can't get stuck.
 
 ---
 
@@ -145,7 +155,7 @@ often), and the network gets a rule-based opponent it can learn from.
 
 ## 6. Learning: PPO with self-play (`ppo.py`, `train.py`)
 
-**The networks:** an Actor (12 → 128 → 128 → 2, tanh) gives the mean of a normal distribution for each of
+**The networks:** an Actor (14 → 128 → 128 → 2, tanh) gives the mean of a normal distribution for each of
 the two actions; a learned standard deviation adds exploration. A Critic with the same shape estimates the
 value of the state. Observations are normalized with a running mean and variance.
 
@@ -190,17 +200,18 @@ The result is the share of goals each side scored. Training curves are saved in 
 
 | Player | Goals against the bot | Share | The Champion against it |
 |---|---|---|---|
-| Beginner (0.1M decisions) | 10 : 472 | 2% | 87% of the goals |
-| Rookie (0.7M) | 54 : 162 | 25% | 95% |
-| Club player (2.5M) | 32 : 119 | 21% | 90% |
-| Expert (6.6M) | 101 : 175 | 37% | 63% |
-| **Champion** (best against the bot, 9.4M) | 227 : 297 | **43%** | - |
-| Last version (12M) | 132 : 268 | 33% | 43% (the last version wins head to head) |
+| Beginner (0.1M decisions) | 4 : 474 | 1% | 95% of the goals |
+| Rookie (0.7M) | 29 : 216 | 12% | 99% |
+| Club player (2.5M) | 91 : 82 | 53% | 85% |
+| Expert (6.6M) | 308 : 84 | 79% | 60% |
+| **Champion** (best against the bot, 8.2M) | 451 : 114 | **80%** | - |
+| Last version (12M) | 452 : 150 | 75% | 46% (the last version wins head to head) |
 
 What this shows:
-* **It learned a lot:** from losing 2 : 47 to scoring 43% of the goals against a hand-tuned bot, without
+* **It learned a lot:** from losing 4 : 474 to scoring 80% of the goals against a hand-tuned bot, without
   ever being shown how to play
-* **The bot is hard to beat:** it defends geometrically, and many points end with no goal (replays)
+* **Rules shape what is learned:** the same training with the 12-second replay rule reached only 43% against
+  the bot, because waiting was a safe choice. With the 7-second rule it had to learn to attack
 * **Self-play is not a straight line:** the last version beats the Champion head to head, but does worse
   against the bot. Each version learns to beat the opponents it meets most, which is why the pool of
   earlier versions and the bot stay in the training mix

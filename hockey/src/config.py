@@ -36,7 +36,9 @@ PADDLE_E = 0.85            # how bouncy a paddle hit is
 SERVE_SPEED = 0.25         # the puck starts slowly, toward the player who serves
 
 # ---------------------------------------------------------------- a point
-POINT_TIME = 12.0          # seconds; if nobody scores, the point is replayed
+STALL_TIME = 7.0           # the real air hockey "7-second rule": a player who keeps the puck in their own half
+                           # for 7 seconds commits a foul, and the opponent gets the puck
+POINT_TIME = 30.0          # seconds; a point with no goal and no foul for this long is replayed (rare)
 MATCH_GOALS = 7            # in the app: first to 7 wins
 
 # ---------------------------------------------------------------- what a player sees and does
@@ -45,7 +47,9 @@ MATCH_GOALS = 7            # in the app: first to 7 wins
 #   0-1  own paddle position (x / 0.5, y / 1)        2-3  own paddle velocity (/ PADDLE_VMAX)
 #   4-5  opponent paddle position                     6-7  opponent paddle velocity
 #   8-9  puck position                               10-11 puck velocity (/ PUCK_VMAX)
-OBS_SIZE = 12
+#   12   my 7-second clock (time the puck has been in my half / 7 s, 0 if it is in the other half)
+#   13   the opponent's 7-second clock
+OBS_SIZE = 14
 ACT_SIZE = 2               # the velocity the paddle tries to reach: (x, y) in [-1, 1] x PADDLE_VMAX
 REACTION_STEPS = 2         # the AI sees the puck and the opponent as they were 2 decisions ago (67 ms) - a human-like
                            # reaction time. Its own paddle it knows without delay, as you feel where your hand is
@@ -54,7 +58,8 @@ REACTION_STEPS = 2         # the AI sees the puck and the opponent as they were 
 GOAL_REWARD = 10.0         # +10 for scoring, -10 for conceding
 PUSH_REWARD = 0.6          # shaping: +0.6 per meter the puck moves toward the opponent's goal (and - back)
 TOUCH_REWARD = 0.05        # a small reward for hitting the puck (helps at the very beginning)
-TIMEOUT_REWARD = -3.0      # both players, when nobody scores in 12 s - so playing for time doesn't pay
+FOUL_REWARD = -3.0         # for the player who broke the 7-second rule - so waiting with the puck doesn't pay
+TIMEOUT_REWARD = 0.0
 
 # ---------------------------------------------------------------- PPO + self-play
 PPO = dict(

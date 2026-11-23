@@ -6,7 +6,7 @@ How good is the trained player?
 Plays 1,000 points in each match-up and prints the share of goals each side scored:
   * every learning stage and the final network against the hand-written bot (at full speed and at 70%)
   * the final network against every earlier stage
-A share above 50% means the first player scores more often. "Replays" are points where nobody scored in 12 s.
+A share above 50% means the first player scores more often. No-goal points: a 7-second-rule foul, or a 30 s replay.
 """
 import numpy as np
 
@@ -21,7 +21,7 @@ POINTS = 1000
 def line(name, res):
     g0, g1, to = res
     share = g0 / max(1, g0 + g1) * 100
-    print(f"  {name:<38} {g0:5d} : {g1:<5d}  {share:5.1f}% of the goals   {to:4d} replays")
+    print(f"  {name:<38} {g0:5d} : {g1:<5d}  {share:5.1f}% of the goals   {to:4d} no-goal points (fouls, replays)")
 
 
 def main():

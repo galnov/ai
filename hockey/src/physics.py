@@ -11,6 +11,8 @@ Every decision (1/30 s) is 8 physics steps of 1/240 s:
      were a moving wall: the puck's velocity *relative to the paddle* is reflected. A paddle moving into the
      puck hits it hard; a paddle standing still just blocks it.
   4. A goal: the puck's center crosses the end line inside the goal mouth.
+After the physics: the 7-second rule. If the puck has stayed in one half for 7 seconds, the player of that
+half commits a foul: -3 for them, and the point is served to the opponent.
 
 The same rules, in the same order, are in docs/physics.js (the web page). They were checked to give the same
 result, step by step.
@@ -31,6 +33,8 @@ class HockeyEnv:
         self.kp = np.zeros((n, 2))         # puck position
         self.kv = np.zeros((n, 2))         # puck velocity
         self.t = np.zeros(n)               # time in the current point
+        self.half_t = np.zeros(n)          # how long the puck has been in its current half (the 7-second rule)
+        self.foul = np.full(n, -1)         # after step(): the player who broke the 7-second rule (-1: nobody)
         self.score = np.zeros((n, 2), int)
         self.hist = np.zeros((C.REACTION_STEPS + 1, n, 2, C.OBS_SIZE))    # recent observations (reaction time)
         self.reset(np.arange(n), server=self.rng.integers(0, 2, n))
@@ -50,6 +54,7 @@ class HockeyEnv:
         self.kv[idx, 0] = 0
         self.kv[idx, 1] = side * C.SERVE_SPEED
         self.t[idx] = 0
+        self.half_t[idx] = 0
         obs = self._observe_now()[idx]
         self.hist[:, idx] = obs[None]
 
@@ -66,6 +71,10 @@ class HockeyEnv:
             o[:, p, 6:8] = s * self.pv[:, 1 - p] / C.PADDLE_VMAX
             o[:, p, 8:10] = s * self.kp * sc
             o[:, p, 10:12] = s * self.kv / C.PUCK_VMAX
+            mine = (self.kp[:, 1] < 0) if p == 0 else (self.kp[:, 1] >= 0)    # the puck is in my half
+            clock = self.half_t / C.STALL_TIME
+            o[:, p, 12] = np.where(mine, clock, 0.0)                      # my 7-second clock
+            o[:, p, 13] = np.where(mine, 0.0, clock)                      # the opponent's
         return o
 
     def observe(self, delayed=True):
@@ -80,13 +89,14 @@ class HockeyEnv:
     # ---------------------------------------------------------------- one decision (1/30 s)
     def step(self, actions):
         """actions: (n, 2, 2) in [-1, 1], each player's in its own view.
-        Returns reward (n, 2), goal (n: +1 player 0 scored, -1 player 1 scored, 0 none), timeout (n),
-        touched (n, 2). Finished points are reset at once (the returned observation is of the new point)."""
+        Returns reward (n, 2), goal (n: +1 player 0 scored, -1 player 1 scored, 0 none), no_goal (n: the point
+        ended without a goal - a foul (see self.foul) or a 30 s replay), touched (n, 2). Finished points are reset at once (the returned observation is of the new point)."""
         a = np.clip(actions, -1, 1).astype(float)
         a[:, 1] *= -1                                         # player 1's view is turned around
         want = a * C.PADDLE_VMAX
         h = C.DT / C.SUBSTEPS
         live = np.ones(self.n, bool)
+        half0 = self.kp[:, 1] >= 0
         goal = np.zeros(self.n)
         touched = np.zeros((self.n, 2), bool)
         y0 = self.kp[:, 1].copy()
@@ -133,7 +143,12 @@ class HockeyEnv:
             goal = np.where(g, np.sign(self.kp[:, 1]), goal)   # puck beyond y = +1: player 0 scored
             live &= ~g
         self.t += C.DT
-        timeout = (goal == 0) & (self.t >= C.POINT_TIME)
+        # the 7-second rule
+        half1 = self.kp[:, 1] >= 0
+        self.half_t = np.where(half1 == half0, self.half_t + C.DT, 0.0)
+        foul = (goal == 0) & (self.half_t >= C.STALL_TIME - 1e-9)
+        self.foul = np.where(foul, half1.astype(int), -1)              # the player whose half it is
+        timeout = (goal == 0) & ~foul & (self.t >= C.POINT_TIME)
 
         # rewards, for both players
         dy = self.kp[:, 1] - y0
@@ -142,16 +157,19 @@ class HockeyEnv:
         r[:, 1] = -C.GOAL_REWARD * goal - C.PUSH_REWARD * dy + C.TOUCH_REWARD * touched[:, 1]
         r[goal != 0] -= np.stack([C.PUSH_REWARD * dy, -C.PUSH_REWARD * dy], 1)[goal != 0]   # no push reward on the scoring step
         r[timeout] += C.TIMEOUT_REWARD
+        r[foul, 0] += np.where(self.foul[foul] == 0, C.FOUL_REWARD, 0.0)
+        r[foul, 1] += np.where(self.foul[foul] == 1, C.FOUL_REWARD, 0.0)
         self.score[goal > 0, 0] += 1
         self.score[goal < 0, 1] += 1
 
         # the reaction-time memory, then new points where one ended
         self.hist = np.roll(self.hist, -1, axis=0)
         self.hist[-1] = self._observe_now()
-        done = (goal != 0) | timeout
+        done = (goal != 0) | timeout | foul
         server = np.where(goal > 0, 1, np.where(goal < 0, 0, self.rng.integers(0, 2, self.n)))
+        server = np.where(foul, 1 - self.foul, server)                 # after a foul the opponent gets the puck
         self.reset(np.flatnonzero(done), server[done])
-        return r, goal, timeout, touched
+        return r, goal, timeout | foul, touched
 
     @staticmethod
     def _walls(kp, kv):
@@ -170,7 +188,8 @@ class HockeyEnv:
 
 
 def play_points(policy0, policy1, points=C.EVAL_POINTS, n=200, seed=123):
-    """Plays until `points` points have finished. Returns (goals for player 0, goals for player 1, replays).
+    """Plays until `points` points have finished. Returns (goals for player 0, goals for player 1,
+    points without a goal - fouls and replays).
     A policy takes the observations (n, OBS_SIZE) of its side and returns actions (n, 2)."""
     env = HockeyEnv(n, seed)
     g0 = g1 = to = 0

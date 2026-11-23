@@ -512,7 +512,7 @@ function endChallenge(aborted) {
 
 // ---------------------------------------------------------------- events
 $("camBtn").onclick = () => (state.mode === "camera" ? stopCamera() : startCamera());
-$("startBtnBig").onclick = startCamera;
+// (the camera starts from the "Start camera" button under the picture)
 $("fileInput").onchange = (e) => { if (e.target.files[0]) loadPhoto(e.target.files[0]); e.target.value = ""; };
 $("snapBtn").onclick = snapshot;
 $("challengeBtn").onclick = startChallenge;

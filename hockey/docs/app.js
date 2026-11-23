@@ -261,6 +261,19 @@
       { y: kp[1], draw: () => (Math.abs(kp[1]) > C.HALF_L ? null : puck(kp[0], kp[1])) },     // in the goal: gone
     ].sort((a, b) => b.y - a.y);
     items.forEach((it) => it.draw());
+    // the 7-second rule: count down the last 3 seconds in the half where the puck is
+    if (S.phase === "live") {
+      const sc = S.table.stallClock();
+      if (sc.left < 3) {
+        const p = P(0, sc.player === 0 ? -0.5 : 0.5, 0);
+        const size = Math.max(14, (0.22 * cam.s) / p[2]);
+        ctx.font = `800 ${size}px "Avenir Next", "Segoe UI", system-ui, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "rgba(255, 183, 3, 0.55)";
+        ctx.fillText(String(Math.ceil(sc.left)), p[0], p[1]);
+      }
+    }
     // where you are aiming (a faint ring), while playing
     if (S.mode === "play" && S.target && S.phase === "live") {
       line(ctx, ring(S.target[0], S.target[1], 0.001, 0.02, 20), "rgba(230,57,70,0.35)", 1.5 * DPR);
@@ -302,12 +315,17 @@
       if (S.score[who] >= C.MATCH_GOALS) return endMatch(who);
       S.phase = "break";
       S.breakLeft = 1.1;
-    } else if (r.timeout) {
-      flash("Replay", "var(--ink)");
-      S.nextServer = Math.random() < 0.5 ? 0 : 1;
+    } else if (r.foul >= 0) {
+      // the 7-second rule: the player who kept the puck in their half too long loses it
+      const me = S.mode === "play" && r.foul === 0;
+      const who = r.foul === 0 ? $("nameBottom").textContent : $("nameTop").textContent;
+      flash(me ? "Too slow! 7-second rule" : S.mode === "play" ? "AI too slow: your puck" : `${who}: 7-second rule`,
+        "var(--amber)");
+      S.nextServer = 1 - r.foul;
       S.phase = "break";
-      S.breakLeft = 0.7;
+      S.breakLeft = 1.1;
     }
+    // (no replays on the page: with the 7-second rule the puck can't stay stuck, so a long rally just goes on)
   }
 
   function newPoint() {
@@ -379,7 +397,7 @@
     showOverlay(`
       <div class="card">
         <h2>Air hockey vs a neural network</h2>
-        <p>First to 7 goals. Move your red paddle with the mouse, or drag with your finger. Defend the near goal and shoot at the far one.</p>
+        <p>First to 7 goals. Move your red paddle with the mouse, or drag with your finger. Defend the near goal and shoot at the far one. Keep the puck in your half for more than 7 seconds and the AI gets it.</p>
         <button class="btn primary" id="start">Start match</button>
       </div>`);
   }
@@ -464,7 +482,7 @@
     $("bottomField").hidden = mode !== "watch";
     stage.classList.toggle("watching", mode === "watch");
     $("hint").textContent = mode === "play"
-      ? "Move your red paddle with the mouse or your finger. You defend the near goal."
+      ? "Move your red paddle with the mouse or your finger. You defend the near goal. 7-second rule: don't keep the puck in your half for more than 7 seconds, or the AI gets it."
       : "Two AI players play each other. Pick the bottom player and the opponent to compare the learning stages.";
     pickBrains();
     if (mode === "watch") startMatch(); else menu();

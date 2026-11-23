@@ -68,7 +68,7 @@
       "folder": "breakout",
       "emoji": "🧱",
       "title": "Pixel Breakout AI",
-      "kind": "Reinforcement learning from pixels (CNN + PPO)",
+      "kind": "Reinforcement learning (from pixels)",
       "text": "Race a convolutional network at Breakout. It learned the game from nothing but the screen's pixels and the score.",
       "game": true
     }

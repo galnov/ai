@@ -139,6 +139,14 @@ select {
 /* the start and result cards fit (and scroll) inside the picture on small screens */
 .overlay { padding: 10px; }
 .overlay .card { max-height: 100%; overflow-y: auto; touch-action: pan-y; }
+/* the Start button stays visible at the bottom of the card, even when the card has to scroll */
+.overlay .card #go { position: sticky; bottom: 0; box-shadow: 0 -10px 16px #020503; }
+@media (max-width: 600px) {
+  .overlay .card { padding: 14px 16px; }
+  .card h2 { font-size: 20px; }
+  .card .long { display: none; }          /* the same text is in the panel under the picture */
+  .keys { font-size: 14px; }
+}
 @media (max-height: 520px) {
   .overlay .card { padding: 14px 18px; }
   .card h2 { font-size: 18px; }

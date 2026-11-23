@@ -41,14 +41,15 @@
           <button class="btn" id="pause" aria-pressed="false">Pause</button>
           <button class="btn icon" id="sound" aria-pressed="true" aria-label="Sound">🔊</button>
         </div>
-        <p class="hint" id="hint">Move your red paddle with the mouse or your finger. You defend the near goal.</p>
+        <p class="hint" id="hint">Move your red paddle with the mouse or your finger. You defend the near goal. 7-second rule: don't keep the puck in your half for more than 7 seconds, or the AI gets it.</p>
       </section>
 
       <section class="panel about">
         <h2>How it learned</h2>
-        <p>The blue player is a small neural network (12 inputs, two layers of 128 neurons, 2 outputs). It sees what you see: both paddles and the puck, their positions and speeds. It answers with the direction to move its paddle, 30 times a second.</p>
+        <p>The blue player is a small neural network (14 inputs, two layers of 128 neurons, 2 outputs). It sees what you see: both paddles and the puck, their positions and speeds, and the 7-second clock. It answers with the direction to move its paddle, 30 times a second.</p>
         <p>Nobody told it how to play. It started with random moves, against a simple rule-based bot. Then it played more and more against earlier versions of itself. It gets a reward for scoring and a penalty for conceding.</p>
         <p>To keep it fair, it reacts 67 ms late (like a quick human), and its paddle has exactly your top speed and acceleration.</p>
+        <p>It also plays by the real air hockey 7-second rule: a player who keeps the puck in their own half for 7 seconds loses it to the opponent. Without the rule, it learned to just wait in front of its goal.</p>
         <p class="small">Pick an early stage as the opponent to see how it played before it learned.</p>
       </section>
     </aside>

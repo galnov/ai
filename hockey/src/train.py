@@ -219,7 +219,7 @@ def main():
                 save(model, C.MODEL_PATH, update=u, steps=u * N * T, vs_bot=sb)
             rpp = float(np.mean(eprets[-2000:])) if eprets else 0.0
             print(f"update {u:4d}/{n_updates} | {steps_m:5.2f}M | reward/point {rpp:6.2f} | "
-                  f"vs bot {gb[0]}:{gb[1]} ({gb[2]} replays) | vs first stage {gf[0]}:{gf[1]} | "
+                  f"vs bot {gb[0]}:{gb[1]} ({gb[2]} no-goal points) | vs first stage {gf[0]}:{gf[1]} | "
                   f"bot opponents {bot_share(u) * 100:.0f}% | std {float(model.log_std.exp().mean()):.2f} | "
                   f"{time.time() - t0:4.0f} s{star}")
             C.REPORTS_DIR.mkdir(parents=True, exist_ok=True)

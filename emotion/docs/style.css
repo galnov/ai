@@ -187,8 +187,15 @@ body {
   .topbar { flex-direction: column; align-items: flex-start; gap: 10px; }
   .brand h1 { font-size: 30px; }
   .status { white-space: normal; font-size: 14px; }
-  .stage { aspect-ratio: 3 / 4; max-height: 70vh; }
+  .stage { aspect-ratio: 1; max-height: 52vh; }
   .empty { padding: 12px; }
+  /* the buttons: camera and upload side by side, the challenge right under them, the screenshot last */
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .controls .btn { width: 100%; text-align: center; justify-content: center; }
+  .controls #challengeBtn { grid-column: 1 / -1; order: 1; }
+  .controls #snapBtn { order: 2; }
+  .controls .spacer { display: none; }
+  .controls .toggle { order: 3; }
   .empty-face { font-size: 64px; }
   .empty p { font-size: 17px; }
 }

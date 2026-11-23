@@ -10,9 +10,9 @@
   const C = {
     HALF_W: 0.5, HALF_L: 1.0, GOAL_HALF: 0.15, PUCK_R: 0.035, PADDLE_R: 0.05,
     DT: 1 / 30, SUBSTEPS: 8, PADDLE_VMAX: 2.6, PADDLE_ACCEL: 30.0, PUCK_VMAX: 6.0, PUCK_FRICTION: 0.25,
-    WALL_E: 0.88, PADDLE_E: 0.85, SERVE_SPEED: 0.25, POINT_TIME: 12.0, MATCH_GOALS: 7,
-    OBS_SIZE: 12, REACTION_STEPS: 2,
-    GOAL_REWARD: 10.0, PUSH_REWARD: 0.6, TOUCH_REWARD: 0.05, TIMEOUT_REWARD: -3.0,
+    WALL_E: 0.88, PADDLE_E: 0.85, SERVE_SPEED: 0.25, STALL_TIME: 7.0, POINT_TIME: 30.0, MATCH_GOALS: 7,
+    OBS_SIZE: 14, REACTION_STEPS: 2,
+    GOAL_REWARD: 10.0, PUSH_REWARD: 0.6, TOUCH_REWARD: 0.05, FOUL_REWARD: -3.0, TIMEOUT_REWARD: 0.0,
   };
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
@@ -36,6 +36,7 @@
       this.kp = [puckX ?? (this.rand() * 0.3 - 0.15), side * 0.3];
       this.kv = [0, side * C.SERVE_SPEED];
       this.t = 0;
+      this.halfT = 0;                   // how long the puck has been in its current half (the 7-second rule)
       const o = this.observeNow();
       this.hist = [];
       for (let i = 0; i <= C.REACTION_STEPS; i++) this.hist.push(o);
@@ -52,6 +53,8 @@
           this.pp[q][0] * sx, this.pp[q][1] * sy, this.pv[q][0] * vp, this.pv[q][1] * vp,
           this.kp[0] * sx, this.kp[1] * sy, this.kv[0] * vk, this.kv[1] * vk,
         ]);
+        const mine = p === 0 ? this.kp[1] < 0 : this.kp[1] >= 0, clock = this.halfT / C.STALL_TIME;
+        out[p].push(mine ? clock : 0, mine ? 0 : clock);
       }
       return out;
     }
@@ -64,8 +67,14 @@
       return [0, 1].map((p) => [...now[p].slice(0, 4), ...old[p].slice(4)]);
     }
 
+    // whose half the puck is in (0 or 1), and how many seconds are left on that player's 7-second clock
+    stallClock() {
+      return { player: this.kp[1] >= 0 ? 1 : 0, left: Math.max(0, C.STALL_TIME - this.halfT) };
+    }
+
     // actions: [[ax, ay], [ax, ay]] in [-1, 1], each in its player's own view.
-    // Returns { goal: +1 player 0 scored / -1 player 1 scored / 0, timeout, touched: [b, b], reward: [r0, r1],
+    // Returns { goal: +1 player 0 scored / -1 player 1 scored / 0, timeout (30 s, replay), foul (the player who
+    //           broke the 7-second rule, or -1), touched: [b, b], reward: [r0, r1],
     //           hitSpeed: the relative speed of the strongest paddle hit (for sounds) }.
     // Unlike the Python version, it doesn't start the next point by itself - the page calls reset().
     step(actions) {
@@ -75,6 +84,7 @@
       });
       const h = C.DT / C.SUBSTEPS, R = C.PUCK_R + C.PADDLE_R;
       let live = true, goal = 0, hitSpeed = 0, wallHit = 0;
+      const half0 = this.kp[1] >= 0;
       const touched = [false, false];
       const y0 = this.kp[1];
       for (let sub = 0; sub < C.SUBSTEPS && live; sub++) {
@@ -129,16 +139,20 @@
         }
       }
       this.t += C.DT;
-      const timeout = goal === 0 && this.t >= C.POINT_TIME;
+      // the 7-second rule
+      const half1 = this.kp[1] >= 0;
+      this.halfT = half1 === half0 ? this.halfT + C.DT : 0;
+      const foul = goal === 0 && this.halfT >= C.STALL_TIME - 1e-9 ? (half1 ? 1 : 0) : -1;
+      const timeout = goal === 0 && foul < 0 && this.t >= C.POINT_TIME;
       const dy = goal === 0 ? this.kp[1] - y0 : 0;
       const tr = timeout ? C.TIMEOUT_REWARD : 0;
       const reward = [
-        C.GOAL_REWARD * goal + C.PUSH_REWARD * dy + C.TOUCH_REWARD * touched[0] + tr,
-        -C.GOAL_REWARD * goal - C.PUSH_REWARD * dy + C.TOUCH_REWARD * touched[1] + tr,
+        C.GOAL_REWARD * goal + C.PUSH_REWARD * dy + C.TOUCH_REWARD * touched[0] + tr + (foul === 0 ? C.FOUL_REWARD : 0),
+        -C.GOAL_REWARD * goal - C.PUSH_REWARD * dy + C.TOUCH_REWARD * touched[1] + tr + (foul === 1 ? C.FOUL_REWARD : 0),
       ];
       this.hist.shift();
       this.hist.push(this.observeNow());
-      return { goal, timeout, touched, reward, hitSpeed, wallHit };
+      return { goal, timeout, foul, touched, reward, hitSpeed, wallHit };
     }
   }
 
