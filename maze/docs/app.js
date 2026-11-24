@@ -84,7 +84,8 @@ async function start() {
 function showReady() {
   const ai = S.P.v_max;
   $("overlay").innerHTML = `<div class="card ready">
-    <h2>Fly the maze yourself</h2>
+    <h2>${S.daily ? "The maze of the day" : "Fly the maze yourself"}</h2>
+    ${S.daily ? `<p class="note">The same maze for everyone today. Your flight counts for today's leaderboard.</p>` : ""}
     ${TOUCH ? `<ul class="keys">
       <li><b>Left thumb:</b> the joystick steers the nose (up, down, left, right)</li>
       <li><b>Right thumb:</b> the throttle bar (up = faster) · ⟲ ⟳ roll</li>
@@ -250,10 +251,10 @@ function finishFly() {
   </div>`;
   $("again").onclick = () => start();
   $("next").onclick = () => newMaze();
-  if (mine === "exit" && S.lb) {
+  if (S.lb) {                                        // a crash counts too: by how far it got
     const moves = S.moves.slice();
     window.Leaderboard.offer($("offer"), { id: S.lb, getMoves: () => moves, onDone: (r) => S.board?.set(r) });
-  } else if (mine === "exit" && S.daily) {
+  } else if (S.daily) {
     $("offer").innerHTML = `<p class="note">This flight couldn't be checked by the leaderboard (no connection).</p>`;
   }
 }
@@ -337,6 +338,20 @@ function drawHud(pose, ghost, time) {
   if (S.phase === "countdown") {
     ctx.fillStyle = "#fff"; ctx.font = "800 96px system-ui"; ctx.textAlign = "center";
     ctx.fillText(String(Math.max(1, 3 - Math.floor(S.phaseT))), cx, cy + 34);
+    if (S.daily) {
+      ctx.shadowColor = "rgba(0,0,0,0.95)"; ctx.shadowBlur = 10;      // readable over the bright walls
+      ctx.fillStyle = "#ffe14d"; ctx.font = "800 30px system-ui";
+      ctx.fillText("Maze of the day", cx, cy - 70);
+      ctx.fillStyle = "rgba(255,255,255,0.8)"; ctx.font = "15px system-ui";
+      ctx.fillText("this flight counts for today's leaderboard", cx, cy + 74);
+      ctx.shadowBlur = 0;
+    }
+  }
+  if (S.daily && S.mode === "fly" && (S.phase === "flying" || S.phase === "over")) {
+    ctx.shadowColor = "rgba(0,0,0,0.95)"; ctx.shadowBlur = 6;
+    ctx.fillStyle = "#ffe14d"; ctx.font = "700 13px system-ui"; ctx.textAlign = "right";
+    ctx.fillText("Maze of the day", w - 18, 28);
+    ctx.shadowBlur = 0;
   }
   ctx.restore();
 }
@@ -503,10 +518,10 @@ async function dailyMaze() {
     $("flyHelp").hidden = false;
   }
   await newMaze(r.seed, true);
-  S.board?.show(r.board, `Maze of ${r.board} · fastest flights to the exit`);
+  S.board?.show(r.board, `Maze of ${r.board} · fastest to the exit, then the farthest crashes`);
 }
 if (window.Leaderboard) {
-  S.board = window.Leaderboard.panel($("lbPanel"), { game: "maze", title: "Leaderboard: maze of the day", sub: "Fastest flights to the exit" });
+  S.board = window.Leaderboard.panel($("lbPanel"), { game: "maze", title: "Leaderboard: maze of the day", sub: "Fastest to the exit, then the farthest crashes" });
   $("daily").onclick = dailyMaze;
 }
 

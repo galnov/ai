@@ -58,7 +58,7 @@ Six games have leaderboards. Four of them are **checked by the server** (it repl
 |---|---|---|
 | Breakout | one for all games (a race against the AI, 3 balls) | bricks |
 | Runner | **today's track**: the same track for everyone, a new one every day (UTC) | distance |
-| Maze | **the maze of the day**: the same 4x4x4 maze for everyone, a new one every day (UTC) | time to the exit |
+| Maze | **the maze of the day**: the same 4x4x4 maze for everyone, a new one every day (UTC) | time to the exit; flights that crashed come after, by how far they got (%) |
 | Car race | one per preset track (tracks you draw yourself have none) | the time of 3 laps |
 
 Each player appears once on a board, with their best score.

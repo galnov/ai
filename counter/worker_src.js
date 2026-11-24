@@ -94,7 +94,9 @@ const LB = {
   maze: {
     higherIsBetter: false,
     daily: true,
-    text: fmtTime,
+    // flights that reached the exit: their time in seconds (lower is better). Flights that crashed come after
+    // them all: 1000 + the share of the way that was NOT flown, in % (so 1000 + 52.7 = "47.3% of the way")
+    text: (s) => (s < 1000 ? fmtTime(s) : `${(Math.round((1100 - s) * 10) / 10).toFixed(1)}% of the way`),
     PHYSICS: {
       cell: 4.0, radius: 0.6, v_min: 2.0, v_max: 11.0, accel_k: 2.5, pitch_rate: 2.2, yaw_rate: 2.2, dt: 0.1, substeps: 2,
       rays_x: 9, rays_y: 9, fov: 100.0, ray_range: 24.0,
@@ -117,7 +119,7 @@ const LB = {
       const ship = new Ship(new MazeData(makeMaze(s.seed, this.ROOMS, P.cell)), P);
       for (let i = 0; i < moves.length; i += 4) {
         ship.step([moves[i] / 50, moves[i + 1] / 50, moves[i + 2] / 50, moves[i + 3] / 50]);
-        if (ship.crashed) return { error: "the ship crashed" };
+        if (ship.crashed) return { score: 1000 + Math.round((1 - ship.progress()) * 1000) / 10, seconds: ship.t };
         if (ship.reached) return { score: Math.round(ship.t * 10) / 10, seconds: ship.t };
       }
       return { error: "the ship didn't reach the exit" };
