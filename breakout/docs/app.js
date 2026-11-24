@@ -22,6 +22,8 @@
     keys: { left: false, right: false },
     sound: true,
     sparks: [],              // little pieces of broken bricks
+    moves: [],               // your moves in this game, for the leaderboard
+    lb: null,                // the leaderboard id of this game
     restartAt: 0,
   };
 
@@ -64,18 +66,32 @@
     return MOVES[r.action];
   }
 
-  // your move: the arrow keys, or toward the pointer (without overshooting it)
+  // your move: the arrow keys, or toward the pointer (without overshooting it). Rounded to steps of 0.1 and
+  // recorded as a letter ("a" = -1 ... "k" = 0 ... "u" = +1): the leaderboard server replays your game from them
   function yourMove() {
-    if (S.keys.left !== S.keys.right) return S.keys.left ? -1 : 1;
-    if (S.target == null) return 0;
-    return clamp((S.target - S.you.px) / (C.PADDLE_SPEED * C.DT), -1, 1);
+    let m = 0;
+    if (S.keys.left !== S.keys.right) m = S.keys.left ? -1 : 1;
+    else if (S.target != null) m = clamp((S.target - S.you.px) / (C.PADDLE_SPEED * C.DT), -1, 1);
+    const q = Math.round(m * 10);
+    S.moves.push(String.fromCharCode(107 + q));
+    return q / 10;
   }
 
   // ---------------------------------------------------------------- the game
   const snap = (b) => ({ px: b.px, bx: b.bx, by: b.by });
 
-  function newGame() {
-    const seed = (Math.random() * 2 ** 31) | 0;          // both boards get the same serves
+  async function newGame() {
+    const token = (S.gameToken = (S.gameToken || 0) + 1);
+    let seed = (Math.random() * 2 ** 31) | 0;            // both boards get the same serves
+    S.lb = null;
+    S.moves = [];
+    if (S.mode === "race" && window.Leaderboard?.enabled) {
+      // a leaderboard game: the server chooses the seed and remembers when the game started
+      hideOverlay();
+      const r = await window.Leaderboard.start("breakout");
+      if (token !== S.gameToken) return;                 // another game was started meanwhile
+      if (r.id) { S.lb = r.id; seed = r.seed; }
+    }
     S.you = new Board(seeded(seed));
     S.ai = new Board(seeded(seed));
     S.prevYou = snap(S.you);
@@ -106,8 +122,9 @@
     updateStats();
     if (race) {
       const y = S.you, a = S.ai;
-      // the race is decided when both are out, or one is out and the other already has more bricks
-      if ((y.over && a.over) || (y.over && a.score > y.score) || (a.over && y.score > a.score)) endRace();
+      // you always play your 3 balls (for the leaderboard); the race is decided when you are out and the AI
+      // is out too or already has more bricks
+      if (y.over && (a.over || a.score > y.score)) endRace();
     } else if (S.ai.over && !S.restartAt) {
       S.restartAt = performance.now() + 2500;
       showOverlay(`<div class="card"><h2>Game over</h2><div class="final"><span class="a">${S.ai.score}</span></div>
@@ -133,9 +150,13 @@
     const title = y > a ? "You win!" : y < a ? "The AI wins" : "A tie";
     const text = y > a ? "You broke more bricks than the network. Try a stronger stage?"
       : "It learned this from pixels alone. Another round?";
-    setTimeout(() => showOverlay(`<div class="card"><h2>${title}</h2>
-      <div class="final"><span class="y">${y}</span> : <span class="a">${a}</span></div>
-      <p>${text}</p><button class="btn primary" id="again">Play again</button></div>`), 600);
+    const id = S.lb, moves = S.moves.join("");
+    setTimeout(() => {
+      showOverlay(`<div class="card"><h2>${title}</h2>
+        <div class="final"><span class="y">${y}</span> : <span class="a">${a}</span></div>
+        <p>${text}</p><div id="offer"></div><button class="btn primary" id="again">Play again</button></div>`);
+      window.Leaderboard?.offer($("offer"), { id, getMoves: () => moves, onDone: (r) => S.board?.set(r) });
+    }, 600);
   }
 
   function updateStats() {
@@ -374,6 +395,7 @@
   });
 
   // ---------------------------------------------------------------- start
+  if (window.Leaderboard) S.board = window.Leaderboard.panel($("lbPanel"), { game: "breakout", title: "Leaderboard", sub: "Bricks with 3 balls, in a race" });
   loadModels().then(() => {
     menu();
     requestAnimationFrame(frame);

@@ -444,7 +444,9 @@ const CH_ROUNDS = 5, CH_ROUND_MS = 5000, CH_PAUSE_MS = 1300;
 function startChallenge() {
   window.Plays?.played("emotion");                             // one more game, for the counter everyone sees
   const pool = CH_EMOTIONS.slice().sort(() => Math.random() - 0.5).slice(0, CH_ROUNDS);
-  state.challenge = { targets: pool, round: -1, best: 0, scores: [], start: 0, pause: false };
+  const ch = (state.challenge = { targets: pool, round: -1, best: 0, scores: [], start: 0, pause: false, lb: null });
+  // a leaderboard id for this game (this score can't be checked by the server - see counter/README.md)
+  window.Leaderboard?.enabled && window.Leaderboard.start("emotion").then((r) => { if (r.id) ch.lb = r.id; });
   $("challenge").hidden = false;
   $("challengeBtn").disabled = true;
   nextRound();
@@ -506,6 +508,8 @@ function endChallenge(aborted) {
     const e = state.byKey[k];
     return `<li><span>${e.emoji} ${e.name}</span><strong>${ch.scores[i]}</strong></li>`;
   }).join("");
+  $("offer").innerHTML = "";
+  window.Leaderboard?.offer($("offer"), { id: ch.lb, getMoves: () => ({ score: total }), onDone: (r) => state.board?.set(r) });
   $("result").hidden = false;
   $("resultClose").focus();
 }
@@ -533,3 +537,6 @@ init();
 
 // "Played N times by visitors" under the title (plays.js)
 window.Plays?.badge("emotion", document.querySelector("header h1"));
+
+// the leaderboard of the challenge (plays.js)
+if (window.Leaderboard) state.board = window.Leaderboard.panel($("lbPanel"), { game: "emotion", title: "Leaderboard", sub: "Challenge points (5 faces)" });

@@ -50,6 +50,7 @@
         <h2>A 3-lap race</h2>
         <p class="hint" id="raceHint">Drive with the arrow keys or W A S D. The white car is yours.</p>
         <button class="btn primary" id="raceBtn">Start race</button>
+        <div id="lbPanel" class="lbbox"></div>
       </section>
 
       <section class="card" data-show="stages">
@@ -79,6 +80,7 @@
         <div class="results" id="results" hidden>
           <h2 id="resultsTitle"></h2>
           <ol id="resultsList"></ol>
+          <div id="offer"></div>
           <button class="btn primary" id="againBtn">Race again</button>
         </div>
       </div>
@@ -104,6 +106,7 @@
   </main>
 
   <script src="mlp.js"></script>
+  <script src="carsim.js"></script>
   <script src="backend.js"></script>
   <!-- the "Played N times" counter: one file for all the games, at the top of the site (missing in a local test) -->
   <script src="../plays.js"></script>

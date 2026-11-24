@@ -38,13 +38,14 @@ async function init() {
   requestAnimationFrame(frame);
 }
 
-async function newMaze(seed) {
+async function newMaze(seed, daily = false) {
+  S.daily = daily;                                     // the maze of the day (it has a leaderboard)
   S.seed = seed ?? Math.floor(Math.random() * 1e9);
   const j = await Backend.maze(S.seed, S.rooms);
   S.maze = new MazeData(j);
   cockpit.setMaze(S.maze);
   map.setMaze(S.maze);
-  $("mazeInfo").textContent = `Maze #${S.seed} · ${S.rooms}×${S.rooms}×${S.rooms} rooms · ${Math.round(S.maze.pathLength())} m to the exit`;
+  $("mazeInfo").textContent = `${S.daily ? "Maze of the day" : `Maze #${S.seed}`} · ${S.rooms}×${S.rooms}×${S.rooms} rooms · ${Math.round(S.maze.pathLength())} m to the exit`;
   S.flight = null;
   start();
 }
@@ -110,6 +111,13 @@ function showReady() {
 function launch() {
   if (S.mode !== "fly" || S.phase !== "ready") return;
   $("overlay").innerHTML = "";
+  S.moves = [];
+  S.lb = null;
+  if (S.daily && window.Leaderboard?.enabled) {
+    // the leaderboard server remembers when this flight started; it checks the flight later by replaying it
+    const seed = S.seed;
+    window.Leaderboard.start("maze", { vmax: S.humanVmax }).then((r) => { if (r.id && r.seed === seed) S.lb = r.id; });
+  }
   window.Plays?.played("maze");                                 // one more flight, for the counter everyone sees
   if (TOUCH) { document.querySelector(".stage").scrollIntoView({ behavior: "smooth", block: "start" }); setThrottle(S.throttle); }
   S.phase = "countdown"; S.phaseT = 0;
@@ -166,7 +174,10 @@ function frame(now) {
       while (S.acc >= S.P.dt && S.phase === "flying") {
         S.acc -= S.P.dt;
         S.prevPose = shipPose(S.ship);
-        S.ship.step(manualAction());
+        // rounded to steps of 0.02 and recorded: the leaderboard server replays the flight from these numbers
+        const a = manualAction().map((v) => Math.round(v * 50));
+        S.moves.push(...a);
+        S.ship.step(a.map((v) => v / 50));
         S.ptime += S.P.dt;
         S.trail.push(S.ship.pos.slice());
         if (S.ship.crashed || S.ship.reached) finishFly();
@@ -234,10 +245,17 @@ function finishFly() {
         <span>${!f ? "" : f.end === "exit" ? "reached the exit" : END_TEXT[f.end].toLowerCase()}</span></div>
     </div>
     ${slower}
+    <div id="offer"></div>
     <div class="row"><button class="btn" id="again">Try again <kbd>R</kbd></button><button class="btn primary" id="next">New maze <kbd>N</kbd></button></div>
   </div>`;
   $("again").onclick = () => start();
   $("next").onclick = () => newMaze();
+  if (mine === "exit" && S.lb) {
+    const moves = S.moves.slice();
+    window.Leaderboard.offer($("offer"), { id: S.lb, getMoves: () => moves, onDone: (r) => S.board?.set(r) });
+  } else if (mine === "exit" && S.daily) {
+    $("offer").innerHTML = `<p class="note">This flight couldn't be checked by the leaderboard (no connection).</p>`;
+  }
 }
 
 // ---------------------------------------------------------------- drawing
@@ -471,6 +489,26 @@ for (const b of document.querySelectorAll("#speed button")) {
 $("pilot").onchange = (e) => { S.pilot = e.target.value; e.target.blur(); S.flight = null; start(); };
 $("rooms").onchange = (e) => { S.rooms = +e.target.value; e.target.blur(); newMaze(); };
 $("newMaze").onclick = () => newMaze();
+
+// the maze of the day: the same maze for everyone (4×4×4 rooms), with a leaderboard of the fastest flights
+async function dailyMaze() {
+  const r = await window.Leaderboard.top("maze");
+  if (r.error || r.seed === undefined) { $("status").textContent = r.error || "No connection to the leaderboard"; return; }
+  S.rooms = 4;
+  $("rooms").value = "4";
+  if (S.mode !== "fly") {                              // switch to flying yourself (newMaze starts the flight)
+    S.mode = "fly";
+    document.querySelectorAll("#modes button").forEach((x) => x.setAttribute("aria-pressed", x.dataset.mode === "fly"));
+    $("watchOnly").hidden = true;
+    $("flyHelp").hidden = false;
+  }
+  await newMaze(r.seed, true);
+  S.board?.show(r.board, `Maze of ${r.board} · fastest flights to the exit`);
+}
+if (window.Leaderboard) {
+  S.board = window.Leaderboard.panel($("lbPanel"), { game: "maze", title: "Leaderboard: maze of the day", sub: "Fastest flights to the exit" });
+  $("daily").onclick = dailyMaze;
+}
 
 init();
 

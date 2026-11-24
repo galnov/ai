@@ -190,3 +190,4 @@ select { font: 15px var(--body); color: var(--ink); border: 2px solid var(--ink)
 /* static version */
 .byline { margin: 2px 0 0; font-size: 14px; opacity: 0.75; }
 .linkbtn { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-decoration: underline; cursor: pointer; }
+.summary-points { margin: -6px 0 14px; opacity: 0.75; }

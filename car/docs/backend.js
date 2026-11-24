@@ -7,18 +7,8 @@
 //  The networks come from docs/model (python -m src.export_web) and run in mlp.js.
 // =====================================================================================
 (function (root) {
-  // the same constants as src/config.py (keep them in sync)
-  const C = {
-    WORLD_W: 1200, WORLD_H: 800, TRACK_SPACING: 8.0, TRACK_WIDTH_RANGE: [80.0, 115.0],
-    DT: 0.05, MAX_SPEED: 260.0, ACCEL: 220.0, BRAKE: 480.0, COAST_DRAG: 40.0, FRICTION: 0.15,
-    TURN_RATE: 3.2, TURN_SPEED_FULL: 60.0, HIGH_SPEED_TURN_LOSS: 0.3, CAR_RADIUS: 7.0, CAR_LENGTH: 22.0, CAR_WIDTH: 11.0,
-    ACTIONS: [[0, 1], [-1, 1], [1, 1], [-1, 0], [1, 0], [0, -1]],
-    ACTION_NAMES: ["Gas", "Gas + left", "Gas + right", "Left", "Right", "Brake"],
-    RAY_ANGLES: [-90, -60, -35, -15, 0, 15, 35, 60, 90].map((d) => (d * Math.PI) / 180),
-    RAY_LENGTH: 260.0, STUCK_STEPS: 60,
-  };
+  const { C, Track, CarEnv, raycast } = root.CarSim;     // carsim.js: the physics (shared with the leaderboard server)
   const CAR_COLORS = ["#ffd23f", "#3bceac", "#ff6b6b", "#7aa2ff", "#c792ea", "#ff9f43", "#5ee27a", "#f78fb3"];
-  const WINDOW = 14;
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const rnd = (lo, hi) => lo + Math.random() * (hi - lo);
 
@@ -86,31 +76,6 @@
     return false;
   }
 
-  class Track {
-    constructor(center, width, name = "track") {
-      this.center = center; this.width = width; this.name = name;
-      const n = (this.n = center.length);
-      this.segLen = center.map((c, i) => { const q = center[(i + 1) % n]; return Math.hypot(q[0] - c[0], q[1] - c[1]); });
-      this.cum = [0];
-      for (const s of this.segLen) this.cum.push(this.cum[this.cum.length - 1] + s);
-      this.length = this.cum[n];
-      this.tangent = center.map((_, i) => {
-        const a = center[(i - 1 + n) % n], b = center[(i + 1) % n], l = Math.hypot(b[0] - a[0], b[1] - a[1]);
-        return [(b[0] - a[0]) / l, (b[1] - a[1]) / l];
-      });
-      const half = width / 2;
-      this.left = center.map((c, i) => [c[0] - this.tangent[i][1] * half, c[1] + this.tangent[i][0] * half]);
-      this.right = center.map((c, i) => [c[0] + this.tangent[i][1] * half, c[1] - this.tangent[i][0] * half]);
-      this.walls = [];                                             // all wall segments - for the sensors
-      for (const side of [this.left, this.right]) side.forEach((a, i) => this.walls.push([a, side[(i + 1) % n]]));
-    }
-    reversed() { return new Track([...this.center].reverse(), this.width, this.name); }
-    toJson() {
-      const r = (pts) => pts.map(([x, y]) => [Math.round(x * 10) / 10, Math.round(y * 10) / 10]);
-      return { name: this.name, width: this.width, length: Math.round(this.length), center: r(this.center), left: r(this.left), right: r(this.right) };
-    }
-  }
-
   class TrackError extends Error {}
 
   function fitToWorld(points, width, fill = false) {
@@ -176,97 +141,6 @@
   }
 
   // ---------------------------------------------------------------- the cars (src/env.py)
-  function raycast(x, y, angle, walls) {
-    const dx = Math.cos(angle), dy = Math.sin(angle);
-    let best = C.RAY_LENGTH;
-    for (const [a, b] of walls) {
-      const ex = b[0] - a[0], ey = b[1] - a[1];
-      const den = dx * ey - dy * ex;
-      if (Math.abs(den) < 1e-9) continue;
-      const px = a[0] - x, py = a[1] - y;
-      const t = (px * ey - py * ex) / den, u = (px * dy - py * dx) / den;
-      if (t > 0 && u >= 0 && u <= 1 && t < best) best = t;
-    }
-    return best;
-  }
-
-  class CarEnv {
-    constructor(track, n) {
-      this.track = track; this.n = n;
-      const t = track, h0 = Math.atan2(t.tangent[0][1], t.tangent[0][0]);
-      this.cars = Array.from({ length: n }, () => ({
-        x: t.center[0][0], y: t.center[0][1], heading: h0, speed: 0, idx: 0, progress: 0, best: 0,
-        steps: 0, sinceBest: 0, laps: 0, lapStart: 0, lastLap: null, bestLap: null, rays: [],
-      }));
-    }
-
-    observe() {
-      return this.cars.map((c) => {
-        c.rays = C.RAY_ANGLES.map((a) => raycast(c.x, c.y, c.heading + a, this.track.walls));
-        return [...c.rays.map((r) => r / C.RAY_LENGTH), c.speed / C.MAX_SPEED];
-      });
-    }
-
-    // the nearest point on the center line, searching only around the previous position
-    locate(c) {
-      const t = this.track;
-      let best = Infinity, bi = c.idx, bu = 0;
-      for (let o = -WINDOW; o <= WINDOW; o++) {
-        const k = (((c.idx + o) % t.n) + t.n) % t.n, a = t.center[k], b = t.center[(k + 1) % t.n];
-        const abx = b[0] - a[0], aby = b[1] - a[1];
-        const u = clamp(((c.x - a[0]) * abx + (c.y - a[1]) * aby) / (abx * abx + aby * aby), 0, 1);
-        const d = Math.hypot(c.x - (a[0] + abx * u), c.y - (a[1] + aby * u));
-        if (d < best) { best = d; bi = k; bu = u; }
-      }
-      return [bi, t.cum[bi] + bu * t.segLen[bi], best];
-    }
-
-    // controls: [steer, throttle] for each car. Returns {crashed, stuck} arrays.
-    step(controls) {
-      const t = this.track, dt = C.DT, crashed = [], stuck = [];
-      this.cars.forEach((c, i) => {
-        const [steer, throttle] = controls[i];
-        const sOld = this.locate(c)[1];
-        let v = c.speed;
-        if (throttle > 0) v += C.ACCEL * dt;
-        if (throttle < 0) v -= C.BRAKE * dt;
-        if (throttle === 0) v -= C.COAST_DRAG * dt;
-        v -= v * C.FRICTION * dt;
-        v = clamp(v, 0, C.MAX_SPEED);
-        const grip = Math.min(1.0, v / C.TURN_SPEED_FULL) * (1 - (C.HIGH_SPEED_TURN_LOSS * v) / C.MAX_SPEED);
-        c.heading += steer * C.TURN_RATE * grip * dt;
-        c.x += Math.cos(c.heading) * v * dt;
-        c.y += Math.sin(c.heading) * v * dt;
-        c.speed = v;
-        const [newIdx, sNew, dist] = this.locate(c);
-        let ds = sNew - sOld;
-        if (ds > t.length / 2) ds -= t.length;                      // crossing the start line
-        if (ds < -t.length / 2) ds += t.length;
-        c.idx = newIdx; c.progress += ds; c.steps += 1;
-        if (c.progress > c.best + 1e-6) { c.best = c.progress; c.sinceBest = 0; } else c.sinceBest += 1;
-        const lapNow = Math.floor(c.progress / t.length);
-        if (lapNow > c.laps) {
-          const lapTime = (c.steps - c.lapStart) * dt;
-          c.lastLap = lapTime;
-          if (c.bestLap === null || lapTime < c.bestLap) c.bestLap = lapTime;
-          c.lapStart = c.steps;
-          c.laps = lapNow;
-        }
-        crashed.push(dist > t.width / 2 - C.CAR_RADIUS);
-        stuck.push(c.sinceBest >= C.STUCK_STEPS);
-      });
-      return { crashed, stuck };
-    }
-
-    // a crashed car goes back to the middle of the track, where it was, at zero speed (for the app)
-    respawn(i) {
-      const c = this.cars[i], t = this.track;
-      [c.x, c.y] = t.center[c.idx];
-      c.heading = Math.atan2(t.tangent[c.idx][1], t.tangent[c.idx][0]);
-      c.speed = 0; c.best = c.progress; c.sinceBest = 0;
-    }
-  }
-
   // ---------------------------------------------------------------- the app's simulation (app/sim.py)
   class Sim {
     constructor(drivers) { this.drivers = drivers; this.track = null; this.env = null; this.cars = []; }
@@ -284,12 +158,13 @@
           c.idx = k; [c.x, c.y] = t.center[k]; c.heading = Math.atan2(t.tangent[k][1], t.tangent[k][0]);
         });
       } else {                                                    // race: all on the start line, side by side
-        const normal = [-t.tangent[0][1], t.tangent[0][0]], span = t.width / 2 - C.CAR_RADIUS - 6;
         e.cars.forEach((c, i) => {
-          const off = n > 1 ? -span + (2 * span * i) / (n - 1) : 0;
-          c.x += off * normal[0]; c.y += off * normal[1];
+          const [ox, oy] = root.CarSim.startOffset(t, n, i);
+          c.x += ox; c.y += oy;
         });
       }
+      // the human's keys, one digit per step (for the leaderboard: the server replays the race from them)
+      this.human = { index: cars.findIndex((c) => c.kind === "human"), n, keys: [] };
       e.observe();
     }
 
@@ -308,7 +183,9 @@
         const obs = env.observe(), f = this.focus();
         const controls = this.cars.map((car, i) => {
           if (car.kind === "human") {
-            return [(keys.right ? 1 : 0) - (keys.left ? 1 : 0), (keys.up ? 1 : 0) - (keys.down ? 1 : 0)];
+            const steer = (keys.right ? 1 : 0) - (keys.left ? 1 : 0), throttle = (keys.up ? 1 : 0) - (keys.down ? 1 : 0);
+            if (this.human.keys.length < 20000) this.human.keys.push((steer + 1) * 3 + (throttle + 1));
+            return [steer, throttle];
           }
           const d = this.drivers[car.driver], { out, hidden } = d.net.forward(obs[i]);
           let a = 0;
@@ -352,7 +229,7 @@
     let error = null;
     try {
       const r = await fetch("tracks.json", { cache: "no-cache" });
-      for (const t of await r.json()) presets[t.id] = new Track(t.center, t.width, t.name);
+      for (const t of await r.json()) { presets[t.id] = new Track(t.center, t.width, t.name); presets[t.id].id = t.id; }
     } catch (e) { console.warn("No preset tracks", e); }
     try {
       const model = await root.MLP.load("model");
@@ -378,6 +255,10 @@
 
   const ROUTES = {
     "/api/info": () => ({ ...info, track: sim.track.toJson() }),
+    // the human's race so far, for the leaderboard: the track, the number of cars, the human's place on
+    // the start line and the keys of every step
+    "/api/humanlog": () => ({ track: sim.track.id || null, n: sim.human?.n || 0, index: sim.human?.index ?? -1,
+                              keys: (sim.human?.keys || []).join("") }),
     "/api/track": (d) => {
       let t;
       if (presets[d.preset]) t = presets[d.preset];
@@ -415,5 +296,5 @@
       }
     },
   };
-  root.CarSim = { C, Track, TrackError, makeTrack, randomTrack, resampleClosed, smoothClosed, curvatureRadius, selfIntersects, partsTooClose, fitToWorld, CarEnv, Sim, raycast };
+  root.CarSim = { ...root.CarSim, TrackError, makeTrack, randomTrack, resampleClosed, smoothClosed, curvatureRadius, selfIntersects, partsTooClose, fitToWorld, Sim };
 })(typeof window !== "undefined" ? window : globalThis);

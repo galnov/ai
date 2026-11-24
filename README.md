@@ -23,8 +23,8 @@ Every project that has a `docs/` folder gets a web page that runs its trained ne
 browser, plus a home page that lists all the projects:
 
 ```
-https://galnov.github.io/ai/            the home page
-https://galnov.github.io/ai/doodle/     a project's page
+https://<your-user>.github.io/<repository>/            the home page
+https://<your-user>.github.io/<repository>/doodle/     a project's page
 ```
 
 The workflow `.github/workflows/pages.yml` builds the site on every push: it copies `index.html`,
@@ -102,8 +102,17 @@ the site's address (`galnov_github_io_ai`/`maze` and so on). Good to know:
   counter answers "Unknown counter" and its badge doesn't appear
 * The counters are public: anyone could add to them. It's a fun number, not a statistic
 
+### The leaderboards
+Breakout, Runner (today's track), Maze (the maze of the day) and the car race (one per preset track) have
+leaderboards, kept by the same Cloudflare Worker. These pages never send a score: they send the player's
+moves, and the Worker replays the whole game with the same game code to compute the score, so a score can't
+be made up with a direct request. Doodle and Emotion have leaderboards too, but their scores can't be
+checked (they come from the camera and from the network in the browser), so they could be faked. How it works, setup and moderation: [`counter/README.md`](counter/README.md).
+
 ### Before every push
 * After training a better network, export it again (the table above)
+* Changed the rules of Breakout, Runner, Maze or the car race? Run `python counter/build_worker.py` and paste the
+  new `counter/worker.js` into the Worker, or the leaderboards will reject the games
 * The big datasets and virtual environments are in `.gitignore`, so they are never uploaded: `*/data/raw/`,
   `emotion/data/` (it also holds the face photos you collected yourself) and `traffic/data/` (the camera
   images can be made again at any time with `python -m src.make_camera_data`). The runner's recordings

@@ -232,9 +232,14 @@ function startGame() {
   $("gameStart").hidden = true;
   $("summary").hidden = true;
   const keys = S.cats.map((c) => c.key).sort(() => Math.random() - 0.5).slice(0, GAME_ROUNDS);
-  S.game = { targets: keys, round: -1, results: [], locked: false };
+  const game = (S.game = { targets: keys, round: -1, results: [], locked: false, lb: null });
+  // a leaderboard id for this game (this score can't be checked by the server - see counter/README.md)
+  window.Leaderboard?.enabled && window.Leaderboard.start("doodle").then((r) => { if (r.id) game.lb = r.id; });
   nextRound();
 }
+
+// the leaderboard score: 100 points for every recognized drawing, + 5 for every second that was left
+const points = (results) => results.reduce((p, r) => p + (r.ok ? 100 + Math.round(5 * Math.max(0, ROUND_MS / 1000 - r.secs)) : 0), 0);
 
 function nextRound() {
   const g = S.game;
@@ -308,6 +313,10 @@ function endGame() {
     return `<div class="shot ${r.ok ? "ok" : "no"}"><img src="${r.img}" alt="Your drawing of ${art(c)}">
       <div class="what">${c.emoji} ${c.name}</div><div class="res">${r.ok ? "✓" : "✗"} ${res}</div></div>`;
   }).join("");
+  const pts = points(g.results);
+  $("summaryPoints").textContent = `${pts} points (100 for each drawing I recognized, + 5 for every second left)`;
+  $("offer").innerHTML = "";
+  window.Leaderboard?.offer($("offer"), { id: g.lb, getMoves: () => ({ score: pts }), onDone: (r) => S.board?.set(r) });
   $("summary").hidden = false;
   $("againBtn").focus();
 }
@@ -373,3 +382,6 @@ init();
 
 // "Played N times by visitors" under the title (plays.js)
 window.Plays?.badge("doodle", document.querySelector("header h1"));
+
+// the leaderboard of the game (plays.js)
+if (window.Leaderboard) S.board = window.Leaderboard.panel($("lbPanel"), { game: "doodle", title: "Leaderboard", sub: "Points in a 6-drawing game" });

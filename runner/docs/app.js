@@ -55,7 +55,16 @@ async function loadInfo() {
 async function startRun() {
   if (S.mode === "race") window.Plays?.played("runner");       // one more race, for the counter everyone sees
   if (TOUCH) document.querySelector(".stage").scrollIntoView({ behavior: "smooth", block: "start" });   // the picture and the buttons on the screen
+  const token = (S.runToken = (S.runToken || 0) + 1);
   S.seed = Math.floor(Math.random() * 2 ** 31);
+  S.lb = null;
+  if (S.mode === "race" && $("daily").checked && window.Leaderboard?.enabled) {
+    // today's track: the same for everyone, chosen by the leaderboard server (which also checks the run later)
+    $("overlay").innerHTML = "";
+    const r = await window.Leaderboard.start("runner");
+    if (token !== S.runToken) return;
+    if (r.id) { S.lb = r.id; S.seed = r.seed; }
+  }
   S.me = S.mode === "race" ? new Game(S.seed) : null;
   S.ghost = new Game(S.seed);
   S.myActions = []; S.input = []; S.gActions = []; S.gScores = []; S.gOver = false; S.gFinal = null;
@@ -126,9 +135,15 @@ function showResult(me, ai, saved) {
         <div class="ai"><small>${aiLabel}</small><b>${fmt(ai.distance)}</b><span>${ai.crash ? "hit " + CRASH_TEXT[ai.crash] : "still running after 10 minutes"}</span></div>
       </div>
       <p class="note">${savedText}</p>
+      <div id="offer"></div>
       <button class="btn primary" id="again">Race again <kbd>Enter</kbd></button>
     </div>`;
   $("again").onclick = startRun;
+  if (S.lb) {
+    const moves = S.myActions.join("");                              // one digit per tick: the server replays the run
+    try { if (!localStorage.getItem("lb.name") && $("name").value.trim()) localStorage.setItem("lb.name", $("name").value.trim().slice(0, 16)); } catch {}
+    window.Leaderboard.offer($("offer"), { id: S.lb, getMoves: () => moves, onDone: (r) => S.board?.set(r) });
+  }
 }
 
 function showMenu() {
@@ -484,3 +499,6 @@ requestAnimationFrame(frame);
 
 // "Played N times by visitors" under the title (plays.js)
 window.Plays?.badge("runner", document.querySelector("header h1"));
+
+// the leaderboard of today's track (plays.js): the best distances, checked by the server
+if (window.Leaderboard) S.board = window.Leaderboard.panel($("lbPanel"), { game: "runner", title: "Leaderboard: today's track", sub: `Track of ${new Date().toISOString().slice(0, 10)} (a new one every day, UTC)` });

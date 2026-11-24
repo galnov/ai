@@ -152,6 +152,116 @@
     get: (game) => call("get", game),
     namespace, LOCAL,
   };
+  // ================================================================= the leaderboards
+  // The page never sends a score. When a game starts it asks the server for a game id (and the game's seed);
+  // when it ends it sends the player's moves, and the server replays the game to find the score
+  // (counter/worker_src.js). Shown with Leaderboard.panel(); a finished game is posted with Leaderboard.offer().
+  async function lbFetch(path, body, tries = 2) {
+    if (LOCAL) return { error: "The leaderboard works on the published site" };
+    for (let i = 0; i < tries; i++) {
+      const ctl = typeof AbortController !== "undefined" ? new AbortController() : null;
+      const timer = ctl && setTimeout(() => ctl.abort(), 10000);
+      try {
+        const r = await fetch(`${API}${path}`, body ? { method: "POST", body: JSON.stringify(body), signal: ctl?.signal,
+          headers: { "Content-Type": "application/json" } } : { cache: "no-store", signal: ctl?.signal });
+        const j = await r.json().catch(() => ({}));
+        if (r.ok) return j;
+        if (r.status < 500) return { error: j.error || `Error ${r.status}` };
+      } catch (_) { /* no connection: try again */ } finally { if (timer) clearTimeout(timer); }
+      if (i < tries - 1) await sleep(800);
+    }
+    return { error: "No connection to the leaderboard" };
+  }
+
+  let lbStyled = false;
+  function lbStyle() {
+    if (lbStyled) return;
+    lbStyled = true;
+    const s = document.createElement("style");
+    s.textContent = `.lb h3 { margin: 0 0 6px; font-size: 1em; }
+      .lb .lb-sub { margin: -2px 0 8px; font-size: 0.82em; opacity: 0.7; }
+      .lb ol { margin: 0; padding: 0; list-style: none; font-variant-numeric: tabular-nums; }
+      .lb li { display: grid; grid-template-columns: 1.8em 1fr auto; gap: 6px; padding: 3px 0; font-size: 0.92em;
+        border-top: 1px solid color-mix(in srgb, currentColor 15%, transparent); }
+      .lb li:first-child { border-top: 0; }
+      .lb li span:first-child { opacity: 0.6; }
+      .lb li span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .lb li.me { font-weight: 700; }
+      .lb .lb-empty { font-size: 0.88em; opacity: 0.7; margin: 0; }
+      .lb-offer { margin: 10px 0 0; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; align-items: center; }
+      .lb-offer input { font: inherit; font-size: 0.95em; padding: 7px 9px; border-radius: 8px; width: 11em; max-width: 100%;
+        border: 1px solid color-mix(in srgb, currentColor 35%, transparent); background: transparent; color: inherit; }
+      .lb-offer button { font: inherit; font-size: 0.95em; font-weight: 700; padding: 7px 12px; border-radius: 8px; cursor: pointer;
+        border: 1px solid currentColor; background: transparent; color: inherit; }
+      .lb-offer button:disabled { opacity: 0.5; cursor: default; }
+      .lb-offer .lb-msg { flex-basis: 100%; font-size: 0.88em; margin: 2px 0 0; }`;
+    document.head.appendChild(s);
+  }
+  const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const lbName = () => { try { return localStorage.getItem("lb.name") || ""; } catch { return ""; } };
+
+  root.Leaderboard = {
+    enabled: !LOCAL,
+    // a game starts: {id, board, seed} (or {error}). extra: the game's settings (track, top speed...)
+    start: (game, extra = {}) => lbFetch("/lb/start", { game, ...extra }),
+    // the game ended: send the moves; the server answers with the score it found, the rank and the top 10
+    submit: (id, name, moves) => lbFetch("/lb/submit", { id, name, moves }, 1),
+    top: (game, board) => lbFetch(`/lb/top?game=${encodeURIComponent(game)}${board ? `&board=${encodeURIComponent(board)}` : ""}`),
+
+    // a leaderboard in the element el: {game, title, sub, board?, autoload?}. Returns {show(board, sub), set(result)}
+    panel(el, opt) {
+      lbStyle();
+      el.classList.add("lb");
+      let board = opt.board || null, sub = opt.sub || "";
+      const render = (rows, error) => {
+        const me = lbName();
+        el.innerHTML = `<h3>${esc(opt.title || "Leaderboard")}</h3>${sub ? `<p class="lb-sub">${esc(sub)}</p>` : ""}` +
+          (error ? `<p class="lb-empty">${esc(error)}</p>`
+            : !rows.length ? `<p class="lb-empty">No scores yet. Be the first!</p>`
+            : `<ol>${rows.map((r, i) => `<li class="${r.name === me ? "me" : ""}"><span>${i + 1}</span><span>${esc(r.name)}</span><span>${esc(r.text)}</span></li>`).join("")}</ol>`);
+      };
+      const api = {
+        async show(b, s) {
+          if (b !== undefined) board = b;
+          if (s !== undefined) sub = s;
+          if (LOCAL) return render([], "The leaderboard works on the published site.");
+          const r = await lbFetch(`/lb/top?game=${encodeURIComponent(opt.game)}${board ? `&board=${encodeURIComponent(board)}` : ""}`);
+          render(r.top || [], r.error);
+        },
+        set(r) { if (r && r.top) render(r.top); },
+      };
+      if (opt.autoload === false) render([], "Loading…"); else api.show();
+      return api;
+    },
+
+    // a "post my score" form in the element el (e.g. the result card). getMoves() gives the moves to send.
+    // onDone(result) is called with the server's answer.
+    offer(el, { id, getMoves, onDone }) {
+      lbStyle();
+      if (!id || LOCAL) return null;
+      const box = document.createElement("div");
+      box.className = "lb-offer";
+      box.innerHTML = `<input maxlength="16" placeholder="Your name" aria-label="Your name for the leaderboard" value="${esc(lbName())}">
+        <button type="button">Post my score</button><p class="lb-msg" aria-live="polite"></p>`;
+      el.appendChild(box);
+      const [input, btn, msg] = [box.querySelector("input"), box.querySelector("button"), box.querySelector(".lb-msg")];
+      input.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter") btn.click(); });
+      btn.addEventListener("click", async () => {
+        const name = input.value.trim();
+        if (!name) { msg.textContent = "Type your name first."; input.focus(); return; }
+        if (!/^[\p{L}\p{N} ._'-]{1,16}$/u.test(name)) { msg.textContent = "Letters, digits and spaces only, please."; input.focus(); return; }
+        try { localStorage.setItem("lb.name", name); } catch {}
+        btn.disabled = input.disabled = true;
+        msg.textContent = "Checking your game…";
+        const r = await root.Leaderboard.submit(id, name, await getMoves());
+        if (r.error) { msg.textContent = r.error; return; }
+        msg.textContent = `Posted: ${r.text}, #${r.rank} on the leaderboard.`;
+        onDone?.(r);
+      });
+      return box;
+    },
+  };
+
   setTimeout(flush, 1500);                       // plays from an earlier visit that were not sent yet
   setInterval(() => { if (Object.keys(load(PENDING)).length) flush(); }, 20000);   // and again every 20 seconds
 })(typeof window !== "undefined" ? window : globalThis);

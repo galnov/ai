@@ -202,3 +202,4 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+.lbbox { margin-top: 18px; }

@@ -56,6 +56,14 @@ async function init() {
 function setTrack(t) {
   S.track = t;
   S.trackLayer = renderTrack(t);
+  showBoard();
+}
+
+// the leaderboard of the current track: only the preset tracks have one (the server knows them)
+function showBoard() {
+  if (!S.board || !S.track) return;
+  if (S.track.id) S.board.show(S.track.id, `${S.track.name}: the best 3-lap race times`);
+  else $("lbPanel").innerHTML = `<h3>Leaderboard</h3><p class="lb-empty">Only the preset tracks have a leaderboard: pick one in Watch mode.</p>`;
 }
 
 // ---------------------------------------------------------------- modes
@@ -150,6 +158,12 @@ async function startRace() {
   S.race.started = true;
   S.running = true;
   world.focus();
+  if (S.track.id && window.Leaderboard?.enabled) {
+    // the leaderboard server remembers when the race started; at the end it replays your keys to find your time
+    const race = S.race, h = await post("/api/humanlog");
+    const r = await window.Leaderboard.start("car", { track: S.track.id, n: h.n, index: h.index });
+    if (r.id) race.lb = r.id;
+  }
 }
 
 function checkRace(st) {
@@ -168,6 +182,11 @@ function checkRace(st) {
       `<li>${S.cars[i].label}<span>${t.toFixed(2)} s</span></li>`).join("") +
       S.cars.map((c, i) => (i in S.race.finished ? "" : `<li>${c.label}<span>still driving…</span></li>`)).join("");
     $("results").hidden = false;
+    $("offer").innerHTML = "";
+    if (human in S.race.finished && S.race.lb) {
+      window.Leaderboard.offer($("offer"), { id: S.race.lb, getMoves: async () => (await post("/api/humanlog")).keys,
+                                              onDone: (r) => S.board?.set(r) });
+    }
   }
 }
 
@@ -497,6 +516,7 @@ world.addEventListener("pointerup", async () => {
 });
 
 // ---------------------------------------------------------------- events
+if (window.Leaderboard) S.board = window.Leaderboard.panel($("lbPanel"), { game: "car", title: "Leaderboard", autoload: false });
 document.querySelectorAll("#modes button").forEach((b) => (b.onclick = () => setMode(b.dataset.mode)));
 $("presetSelect").onchange = async (e) => {
   const r = await post("/api/track", { preset: e.target.value });

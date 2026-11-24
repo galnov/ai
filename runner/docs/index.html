@@ -49,6 +49,7 @@
           </div>
         </div>
         <label class="field">Your name <input id="name" maxlength="24" placeholder="for the leaderboard"></label>
+        <label class="check"><input type="checkbox" id="daily" checked> Race on today's track (for the leaderboard)</label>
         <label class="check"><input type="checkbox" id="record" checked> Record my runs as training data</label>
       </section>
 
@@ -69,8 +70,10 @@
         </div>
       </section>
 
+      <section class="card" id="lbPanel"></section>
+
       <section class="card">
-        <h2>Leaderboard</h2>
+        <h2>Your runs (this browser)</h2>
         <ol class="board" id="board"></ol>
         <p class="stat" id="h2h"></p>
         <p class="stat" id="recStats"></p>
