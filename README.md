@@ -23,15 +23,15 @@ Every project that has a `docs/` folder gets a web page that runs its trained ne
 browser, plus a home page that lists all the projects:
 
 ```
-https://<your-user>.github.io/<repository>/            the home page
-https://<your-user>.github.io/<repository>/doodle/     a project's page
+https://galnov.github.io/ai/            the home page
+https://galnov.github.io/ai/doodle/     a project's page
 ```
 
 The workflow `.github/workflows/pages.yml` builds the site on every push: it copies `index.html`,
 `projects.json` and `plays.js`, and the `docs/` folder of every project, into one site and publishes it.
 
 ### Setting it up (once)
-1. Create a **public** repository on GitHub (for example `ai-projects`), empty - no README, no .gitignore
+1. Create a **public** repository on GitHub named `ai`, empty - no README, no .gitignore
 2. From this folder (the one with this README):
    ```bash
    git init
@@ -39,13 +39,13 @@ The workflow `.github/workflows/pages.yml` builds the site on every push: it cop
    git status          # check that no data/raw/ or venv/ folders are listed
    git commit -m "AI projects"
    git branch -M main
-   git remote add origin https://github.com/<your-user>/<repository>.git
+   git remote add origin https://github.com/galnov/ai.git
    git push -u origin main
    ```
 3. On GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**
 4. Open the **Actions** tab: the "Publish the web pages" run takes about a minute. If it ran before step 3
    and failed, click it and choose **Re-run all jobs**
-5. The site is at `https://<your-user>.github.io/<repository>/`
+5. The site is at `https://galnov.github.io/ai/`
 
 ### Adding a project
 1. Copy the project folder into this repository, next to the others (for example `chess/`)

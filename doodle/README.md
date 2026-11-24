@@ -37,7 +37,7 @@ training is fast and the network answers within milliseconds.
 ## 2. Project structure
 
 ```
-doodle-ai/
+doodle/
 ├── requirements.txt
 ├── data/
 │   ├── raw/              the downloaded drawings (created by the download)
@@ -112,7 +112,7 @@ python -m src.train              # full training: 15 epochs
 On a Mac with Apple silicon, or with an NVIDIA graphics card, training uses the graphics card's acceleration automatically.
 
 > **Training in Google Colab:** if training on your computer is slow, you can train for free on a T4 GPU with the
-> notebook `notebooks/train_colab.ipynb`. Upload the notebook to Colab, choose T4, upload `doodle-ai.zip`
+> notebook `notebooks/train_colab.ipynb`. Upload the notebook to Colab, choose T4, upload `doodle.zip`
 > and run the cells in order. At the end, download `doodle_cnn.pt` into the `models/` folder on your computer.
 
 After every epoch the validation accuracy is printed: top-1 (the first guess is correct) and top-3 (the correct answer
@@ -222,7 +222,7 @@ We send the server the **strokes** and not an image, so the server can process t
 
 ## 7. Publishing the app on GitHub Pages
 
-GitHub Pages hosts static files for free, at an address like `https://<your-user>.github.io/doodle-ai/`.
+GitHub Pages hosts static files for free; this page is at `https://galnov.github.io/ai/doodle/`.
 It can't run Python, so the `docs/` folder holds a version of the app that needs no server: the drawing is
 turned into a 28 × 28 image in JavaScript (`docs/render.js`, the twin of `src/render.py`), and the trained CNN
 runs in the visitor's browser, in plain JavaScript (`docs/cnn.js`), in a background thread so drawing stays
@@ -245,21 +245,9 @@ python -m http.server 8000 --directory docs
 and open http://localhost:8000. (Opening `docs/index.html` directly as a file does not work: browsers
 don't allow the background thread and the model files from `file://`.)
 
-**3. Publish:**
-1. Create a new repository on GitHub, for example `doodle-ai`
-2. Push the project to it (`data/raw/` is in `.gitignore`, so the big dataset files are not uploaded;
-   `docs/model/` must be included):
-   ```bash
-   git init
-   git add .
-   git commit -m "Guess What I'm Drawing"
-   git branch -M main
-   git remote add origin https://github.com/<your-user>/doodle-ai.git
-   git push -u origin main
-   ```
-3. On GitHub: **Settings → Pages → Build and deployment → Source: Deploy from a branch →
-   Branch: `main`, folder: `/docs` → Save**
-4. After a minute or two the page is live at `https://<your-user>.github.io/doodle-ai/`
+**3. Publish:** this project lives in the shared repository of all the projects. Push the repository, and
+its workflow publishes this folder's `docs/` at `https://galnov.github.io/ai/doodle/` (the
+README at the top of the repository explains the one-time setup).
 
 **What is different on the web page:**
 * "Save as a training example" keeps the drawings in the visitor's browser. "Download my drawings" saves

@@ -252,7 +252,7 @@ allow the background thread and the model files from `file://`. The camera works
 `https://` addresses, such as GitHub Pages.)
 
 **3. Publish:** this project lives in the shared repository of all the projects. Push the repository, and
-its workflow publishes this folder's `docs/` at `https://<your-user>.github.io/<repository>/emotion/` (the
+its workflow publishes this folder's `docs/` at `https://galnov.github.io/ai/emotion/` (the
 README at the top of the repository explains the one-time setup). Don't push `data/`: the dataset is large,
 and the images you collected yourself are photos of people (the repository's `.gitignore` leaves it out).
 

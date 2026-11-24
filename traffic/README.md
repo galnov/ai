@@ -242,7 +242,7 @@ and open http://localhost:8000. (Opening `docs/index.html` directly as a file do
 don't allow the background threads and the model files from `file://`.)
 
 **3. Publish:** this project lives in the shared repository of all the projects. Push the repository, and
-its workflow publishes this folder's `docs/` at `https://<your-user>.github.io/<repository>/traffic/` (the
+its workflow publishes this folder's `docs/` at `https://galnov.github.io/ai/traffic/` (the
 README at the top of the repository explains the one-time setup).
 
 **What is different on the web page:** the camera network is the heaviest part, about 400 million

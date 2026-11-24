@@ -212,7 +212,7 @@ python -m http.server 8000 --directory docs
 and open http://localhost:8000 (opening `docs/index.html` directly as a file does not load the model files).
 
 **3. Publish:** this project lives in the shared repository of all the projects. Push the repository, and
-its workflow publishes this folder's `docs/` at `https://<your-user>.github.io/<repository>/drone/` (the
+its workflow publishes this folder's `docs/` at `https://galnov.github.io/ai/drone/` (the
 README at the top of the repository explains the one-time setup).
 
 **Checked during development:** with gusts off, four drones flown for 8 seconds by the same network in

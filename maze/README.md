@@ -304,7 +304,7 @@ python -m http.server 8000 --directory docs
 and open http://localhost:8000 (opening `docs/index.html` directly as a file does not load the model files).
 
 **3. Publish:** this project lives in the shared repository of all the projects. Push the repository, and
-its workflow publishes this folder's `docs/` at `https://<your-user>.github.io/<repository>/maze/` (the
+its workflow publishes this folder's `docs/` at `https://galnov.github.io/ai/maze/` (the
 README at the top of the repository explains the one-time setup).
 
 **On phones and tablets:** "Fly it yourself" gets touch controls: a joystick for the left thumb (it appears
