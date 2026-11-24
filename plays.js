@@ -255,7 +255,9 @@
         msg.textContent = "Checking your game…";
         const r = await root.Leaderboard.submit(id, name, await getMoves());
         if (r.error) { msg.textContent = r.error; return; }
-        msg.textContent = `Posted: ${r.text}, #${r.rank} on the leaderboard.`;
+        msg.textContent = r.bestText && r.bestText !== r.text
+          ? `Posted: ${r.text}. Your best here is still ${r.bestText} (#${r.rank}): the board shows each name once, with its best score.`
+          : `Posted: ${r.text}, #${r.rank} on the leaderboard.`;
         onDone?.(r);
       });
       return box;

@@ -22,7 +22,6 @@
     keys: { left: false, right: false },
     sound: true,
     sparks: [],              // little pieces of broken bricks
-    moves: [],               // your moves in this game, for the leaderboard
     lb: null,                // the leaderboard id of this game
     restartAt: 0,
   };
@@ -73,7 +72,7 @@
     if (S.keys.left !== S.keys.right) m = S.keys.left ? -1 : 1;
     else if (S.target != null) m = clamp((S.target - S.you.px) / (C.PADDLE_SPEED * C.DT), -1, 1);
     const q = Math.round(m * 10);
-    S.moves.push(String.fromCharCode(107 + q));
+    S.you.moves.push(String.fromCharCode(107 + q));     // kept on the board itself, so games can't mix
     return q / 10;
   }
 
@@ -84,7 +83,7 @@
     const token = (S.gameToken = (S.gameToken || 0) + 1);
     let seed = (Math.random() * 2 ** 31) | 0;            // both boards get the same serves
     S.lb = null;
-    S.moves = [];
+    S.phase = "starting";                                // stop the old game right away (no more moves from it)
     if (S.mode === "race" && window.Leaderboard?.enabled) {
       // a leaderboard game: the server chooses the seed and remembers when the game started
       hideOverlay();
@@ -92,7 +91,9 @@
       if (token !== S.gameToken) return;                 // another game was started meanwhile
       if (r.id) { S.lb = r.id; seed = r.seed; }
     }
+    S.seed = seed;
     S.you = new Board(seeded(seed));
+    S.you.moves = [];                                    // your moves in this game, for the leaderboard
     S.ai = new Board(seeded(seed));
     S.prevYou = snap(S.you);
     S.prevAi = snap(S.ai);
@@ -150,7 +151,7 @@
     const title = y > a ? "You win!" : y < a ? "The AI wins" : "A tie";
     const text = y > a ? "You broke more bricks than the network. Try a stronger stage?"
       : "It learned this from pixels alone. Another round?";
-    const id = S.lb, moves = S.moves.join("");
+    const id = S.lb, moves = S.you.moves.join("");
     setTimeout(() => {
       showOverlay(`<div class="card"><h2>${title}</h2>
         <div class="final"><span class="y">${y}</span> : <span class="a">${a}</span></div>

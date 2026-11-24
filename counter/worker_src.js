@@ -240,12 +240,17 @@ async function leaderboard(request, env, url) {
     if (elapsed < r.seconds * REAL_TIME) return reply(400, { error: "Not accepted: the game was played faster than real time" });
     await env.DB.prepare("INSERT INTO scores (game, board, name, score, created) VALUES (?1, ?2, ?3, ?4, ?5)")
       .bind(s.game, s.board, name, r.score, Date.now()).run();
-    // the rank of this score among the players' best scores
+    // the board shows each name once, with its best score: find this player's best, and its rank
+    const agg = L.higherIsBetter ? "MAX" : "MIN";
+    const mine = await env.DB.prepare(`SELECT ${agg}(score) AS b FROM scores WHERE game = ?1 AND board = ?2 AND name = ?3`)
+      .bind(s.game, s.board, name).first();
+    const best = mine.b;
     const better = await env.DB.prepare(
-      `SELECT COUNT(*) AS c FROM (SELECT name, ${L.higherIsBetter ? "MAX" : "MIN"}(score) AS b FROM scores
+      `SELECT COUNT(*) AS c FROM (SELECT name, ${agg}(score) AS b FROM scores
        WHERE game = ?1 AND board = ?2 AND name <> ?3 GROUP BY name) WHERE b ${L.higherIsBetter ? ">" : "<"} ?4`
-    ).bind(s.game, s.board, name, r.score).first();
-    return reply(200, { score: r.score, text: L.text(r.score), rank: better.c + 1, board: s.board, top: await top(env, s.game, s.board) });
+    ).bind(s.game, s.board, name, best).first();
+    return reply(200, { score: r.score, text: L.text(r.score), best, bestText: L.text(best), rank: better.c + 1,
+                        board: s.board, top: await top(env, s.game, s.board) });
   }
   return reply(404, { error: "Unknown address" });
 }
